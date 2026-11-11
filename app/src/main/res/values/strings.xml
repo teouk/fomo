@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">FOMO</string>
+    <string name="action_save_event">Save event</string>
+    <string name="label_may_clash">May clash</string>
+
+    <!-- Home -->
+    <string name="search_hint">Search events or artists</string>
+    <string name="action_scan_poster">Scan a poster</string>
+    <string name="section_this_weekend">This weekend</string>
+    <string name="section_near_you">Near you</string>
+
+    <!-- Categories -->
+    <string name="category_all">All</string>
+    <string name="category_music">Music</string>
+    <string name="category_sport">Sport</string>
+    <string name="category_arts_theatre">Arts &amp; Theatre</string>
+    <string name="category_comedy">Comedy</string>
+    <string name="category_family">Family</string>
+    <string name="category_film">Film</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_discover">Discover</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_plans">My Plans</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Search & Filter -->
+    <string name="action_back">Back</string>
+    <string name="label_category">Category</string>
+    <string name="label_when">When</string>
+    <string name="label_distance">Distance</string>
+    <string name="date_today">Today</string>
+    <string name="date_weekend">Weekend</string>
+    <string name="date_7_days">7 days</string>
+    <string name="date_pick">Dates</string>
+    <string name="filter_only_free">Only when I\'m free</string>
+    <string name="action_clear_all">Clear all</string>
+    <string name="empty_results_title">No events match</string>
+    <string name="empty_results_body">Try a wider distance or clear some filters.</string>
+
+    <!-- Event Details -->
+    <string name="action_add_to_plans">Add to plans</string>
+    <string name="action_get_tickets">Get tickets</string>
+    <string name="action_read_more">Read more</string>
+    <string name="action_directions">Directions</string>
+    <string name="action_check_in">I\'m here!</string>
+    <string name="label_about">About</string>
+    <string name="label_location">Location</string>
+    <string name="check_in_title">It\'s event day!</string>
+    <string name="check_in_body">Check in when you arrive to collect a stamp in your Events Passport.</string>
+    <string name="weather_credit">Forecast by Open-Meteo</string>
+    <string name="map_credit">© OpenStreetMap contributors</string>
+</resources>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image_event"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearance="?attr/shapeAppearanceCornerMedium"
+        tools:src="@sample/event_images" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_save_event"
+        style="?attr/materialIconButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/action_save_event"
+        app:icon="@drawable/ic_bookmark_border"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/text_event_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintEnd_toStartOf="@id/button_save_event"
+        app:layout_constraintStart_toEndOf="@id/image_event"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@sample/events.json/events/title" />
+
+    <TextView
+        android:id="@+id/text_event_date_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="@id/text_event_title"
+        app:layout_constraintStart_toStartOf="@id/text_event_title"
+        app:layout_constraintTop_toBottomOf="@id/text_event_title"
+        tools:text="@sample/events.json/events/date_time" />
+
+    <TextView
+        android:id="@+id/text_event_venue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="@id/text_event_title"
+        app:layout_constraintStart_toStartOf="@id/text_event_title"
+        app:layout_constraintTop_toBottomOf="@id/text_event_date_time"
+        tools:text="@sample/events.json/events/venue_distance" />
+
+    <TextView
+        android:id="@+id/text_event_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintStart_toStartOf="@id/text_event_title"
+        app:layout_constraintTop_toBottomOf="@id/text_event_venue"
+        tools:text="@sample/events.json/events/price" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/text_event_title"
+        app:layout_constraintTop_toBottomOf="@id/text_event_price" />
+
+    <TextView
+        android:id="@+id/text_event_busy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:drawablePadding="4dp"
+        android:text="@string/label_may_clash"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorWarning"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_event_busy"
+        app:drawableTint="?attr/colorWarning"
+        app:layout_constraintBaseline_toBaselineOf="@id/text_event_price"
+        app:layout_constraintStart_toEndOf="@id/text_event_price" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

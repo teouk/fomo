@@ -1,0 +1,21 @@
+# Android Studio / IntelliJ: machine-specific settings, regenerated on open
+*.iml
+/.idea/
+
+# Gradle and Kotlin build output and caches
+.gradle
+.kotlin/
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Machine-specific config and secrets (the API key will live here)
+local.properties
+
+# App signing keys
+*.jks
+*.keystore
+
+# macOS
+.DS_Store

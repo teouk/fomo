@@ -1,0 +1,20 @@
+{
+  "events": [
+    { "title": "Jazz on the Bay", "category": "Music",
+      "date_time": "Fri 6 Nov · 19:30", "venue_distance": "Swansea Arena · 0.8 mi", "price": "From £35" },
+    { "title": "Fireworks at the Castle", "category": "Family",
+      "date_time": "Sat 7 Nov · 18:00", "venue_distance": "Oystermouth Castle · 4.6 mi", "price": "From £8" },
+    { "title": "Comedy Club Night", "category": "Comedy",
+      "date_time": "Sat 7 Nov · 20:00", "venue_distance": "Swansea Grand Theatre · 0.5 mi", "price": "From £12" },
+    { "title": "Five-a-side Charity Cup", "category": "Sport",
+      "date_time": "Sun 8 Nov · 11:00", "venue_distance": "Swansea Bay Sports Park · 2.4 mi", "price": "From £5" },
+    { "title": "Open Mic Night", "category": "Music",
+      "date_time": "Tue 10 Nov · 17:00", "venue_distance": "Taliesin Arts Centre · 2.1 mi", "price": "Free" },
+    { "title": "Indie Night: The Harbour Lights", "category": "Music",
+      "date_time": "Fri 13 Nov · 20:00", "venue_distance": "Brangwyn Hall · 0.9 mi", "price": "From £15" },
+    { "title": "Film Night: Classic Noir", "category": "Film",
+      "date_time": "Wed 18 Nov · 19:00", "venue_distance": "Taliesin Arts Centre · 2.1 mi", "price": "From £7" },
+    { "title": "The Nutcracker", "category": "Arts & Theatre",
+      "date_time": "Sat 21 Nov · 14:30", "venue_distance": "Swansea Grand Theatre · 0.5 mi", "price": "From £22" }
+  ]
+}
