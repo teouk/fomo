@@ -1,0 +1,70 @@
+{
+  "_embedded": {
+    "events": [
+      {
+        "name": "The Harbour Lights",
+        "type": "event",
+        "id": "G5vYZ9sample01",
+        "test": false,
+        "url": "https://www.ticketmaster.co.uk/the-harbour-lights-swansea/event/sample01",
+        "locale": "en-us",
+        "images": [
+          { "ratio": "3_2", "url": "https://example.com/harbour_3_2.jpg", "width": 1024, "height": 683, "fallback": false },
+          { "ratio": "16_9", "url": "https://example.com/harbour_16_9_small.jpg", "width": 640, "height": 360, "fallback": false },
+          { "ratio": "16_9", "url": "https://example.com/harbour_16_9_medium.jpg", "width": 1024, "height": 576, "fallback": false },
+          { "ratio": "16_9", "url": "https://example.com/harbour_16_9_large.jpg", "width": 2048, "height": 1152, "fallback": false }
+        ],
+        "sales": { "public": { "startDateTime": "2026-09-01T09:00:00Z", "startTBD": false } },
+        "dates": {
+          "start": {
+            "localDate": "2026-11-13",
+            "localTime": "19:30:00",
+            "dateTime": "2026-11-13T19:30:00Z",
+            "dateTBD": false,
+            "timeTBA": false
+          },
+          "timezone": "Europe/London",
+          "status": { "code": "onsale" }
+        },
+        "classifications": [
+          {
+            "primary": true,
+            "segment": { "id": "KZFzniwnSyZfZ7v7nJ", "name": "Music" },
+            "genre": { "id": "KnvZfZ7vAeA", "name": "Rock" }
+          }
+        ],
+        "info": "Doors open at 18:30.",
+        "priceRanges": [
+          { "type": "standard", "currency": "GBP", "min": 27.5, "max": 45.0 },
+          { "type": "standard including fees", "currency": "GBP", "min": 31.9, "max": 51.0 }
+        ],
+        "_embedded": {
+          "venues": [
+            {
+              "name": "Swansea Arena",
+              "type": "venue",
+              "id": "KovZsampleVenue1",
+              "postalCode": "SA1 3BX",
+              "city": { "name": "Swansea" },
+              "country": { "name": "Great Britain", "countryCode": "GB" },
+              "address": { "line1": "Oystermouth Road" },
+              "location": { "longitude": "-3.9436", "latitude": "51.6144" }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Open Mic Night",
+        "type": "event",
+        "id": "G5vYZ9sample02",
+        "dates": {
+          "start": { "localDate": "2026-11-20", "dateTBD": false, "timeTBA": true, "noSpecificTime": true }
+        },
+        "classifications": [
+          { "primary": true, "segment": { "name": "Undefined" }, "genre": { "name": "Undefined" } }
+        ]
+      }
+    ]
+  },
+  "page": { "size": 20, "totalElements": 2, "totalPages": 1, "number": 0 }
+}
