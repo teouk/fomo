@@ -1,5 +1,7 @@
-package io.github.teouk.fomo
+package io.github.teouk.fomo.ui.search
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -7,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import io.github.teouk.fomo.databinding.ActivitySearchBinding
 
+/** Search & Filter screen. Opened from the search bar on Discover. */
 class SearchActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySearchBinding
 
@@ -20,5 +23,13 @@ class SearchActivity : AppCompatActivity() {
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // finish() closes this screen and returns to whichever screen opened it.
+        binding.toolbarSearch.setNavigationOnClickListener { finish() }
+    }
+
+    companion object {
+        /** Builds the Intent that opens this screen, so callers never construct it by hand. */
+        fun newIntent(context: Context): Intent = Intent(context, SearchActivity::class.java)
     }
 }

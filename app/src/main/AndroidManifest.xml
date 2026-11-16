@@ -22,11 +22,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SearchActivity"
+            android:name=".ui.search.SearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".EventDetailsActivity"
+            android:name=".ui.details.EventDetailsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>
