@@ -24,6 +24,11 @@
     <string name="nav_plans">My Plans</string>
     <string name="nav_profile">Profile</string>
 
+    <!-- Placeholder tabs (replaced as each feature is built) -->
+    <string name="placeholder_map">The map of nearby events will appear here.</string>
+    <string name="placeholder_plans">Your saved events and schedule will appear here.</string>
+    <string name="placeholder_profile">Your profile and settings will appear here.</string>
+
     <!-- Search & Filter -->
     <string name="action_back">Back</string>
     <string name="label_category">Category</string>
