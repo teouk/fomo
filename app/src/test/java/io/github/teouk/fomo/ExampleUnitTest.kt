@@ -1,4 +1,4 @@
-package com.example.csc406_events_app
+package io.github.teouk.fomo
 
 import org.junit.Test
 

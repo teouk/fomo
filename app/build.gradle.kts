@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.csc406_events_app"
+    namespace = "io.github.teouk.fomo"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.csc406_events_app"
+        applicationId = "io.github.teouk.fomo"
         minSdk = 33
         targetSdk = 37
         versionCode = 1

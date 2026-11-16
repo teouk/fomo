@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <!-- Palette from Material Theme Builder, seed #00897B -->
-    <style name="Base.Theme.CSC406EventsApp" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Fomo" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
@@ -54,5 +54,5 @@
         <item name="colorOnWarningContainer">@color/colorOnWarningContainer</item>
     </style>
 
-    <style name="Theme.CSC406EventsApp" parent="Base.Theme.CSC406EventsApp" />
+    <style name="Theme.Fomo" parent="Base.Theme.Fomo" />
 </resources>

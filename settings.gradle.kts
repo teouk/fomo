@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CSC406-Events-App"
+rootProject.name = "FOMO"
 include(":app")

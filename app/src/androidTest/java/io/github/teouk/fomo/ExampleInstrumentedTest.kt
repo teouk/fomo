@@ -1,4 +1,4 @@
-package com.example.csc406_events_app
+package io.github.teouk.fomo
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.csc406_events_app", appContext.packageName)
+        assertEquals("io.github.teouk.fomo", appContext.packageName)
     }
 }
