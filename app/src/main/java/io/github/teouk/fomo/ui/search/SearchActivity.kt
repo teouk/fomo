@@ -29,7 +29,13 @@ class SearchActivity : AppCompatActivity() {
     }
 
     companion object {
-        /** Builds the Intent that opens this screen, so callers never construct it by hand. */
-        fun newIntent(context: Context): Intent = Intent(context, SearchActivity::class.java)
+        private const val EXTRA_SCAN_POSTER = "io.github.teouk.fomo.extra.SCAN_POSTER"
+
+        /**
+         * Builds the Intent that opens this screen, so callers never construct it by hand.
+         * @param scanPoster open the camera straight away (Poster Scanner).
+         */
+        fun newIntent(context: Context, scanPoster: Boolean = false): Intent =
+            Intent(context, SearchActivity::class.java).putExtra(EXTRA_SCAN_POSTER, scanPoster)
     }
 }

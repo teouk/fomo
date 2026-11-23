@@ -9,6 +9,29 @@
     <string name="section_this_weekend">This weekend</string>
     <string name="section_near_you">Near you</string>
 
+    <string name="location_events_near">Events near %1$s</string>
+    <string name="location_choose_title">Choose a location</string>
+    <string name="sample_data_notice">Showing sample Swansea events. Live Ticketmaster events appear once an API key is added.</string>
+    <string name="discover_empty">No upcoming events near %1$s. Try another place or category.</string>
+    <string name="action_retry">Try again</string>
+
+    <!-- Event cards -->
+    <string name="price_from">From %1$s</string>
+    <string name="price_free">Free</string>
+    <string name="price_tbc">Price TBC</string>
+    <string name="venue_with_distance">%1$s · %2$s</string>
+    <string name="date_tbc">Date TBC</string>
+    <string name="action_unsave_event">Remove from saved</string>
+    <string name="event_saved">Saved to My Plans</string>
+    <string name="event_unsaved">Removed from saved</string>
+
+    <!-- Errors -->
+    <string name="error_offline">You\'re offline. Check your connection and try again.</string>
+    <string name="error_invalid_key">Live events are unavailable: the Ticketmaster API key is missing or was rejected.</string>
+    <string name="error_rate_limited">Too many requests right now. Please try again in a minute.</string>
+    <string name="error_not_found">This event is no longer available.</string>
+    <string name="error_server">Something went wrong loading events. Please try again.</string>
+
     <!-- Categories -->
     <string name="category_all">All</string>
     <string name="category_music">Music</string>
