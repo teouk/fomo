@@ -37,7 +37,8 @@ class LibraryRepository(private val dao: SavedEventDao) {
         write(event, isSaved = current?.isSaved == true, isPlanned = planned)
     }
 
-    suspend fun getPlanned(eventId: String): Event? = dao.get(eventId)?.takeIf { it.isPlanned }?.toEvent()
+    /** The stored copy of a saved or planned event, used when the API cannot be reached. */
+    suspend fun getStored(eventId: String): Event? = dao.get(eventId)?.toEvent()
 
     /** A row with neither flag set means nothing, so it is deleted rather than kept. */
     private suspend fun write(event: Event, isSaved: Boolean, isPlanned: Boolean) {

@@ -6,10 +6,11 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import io.github.teouk.fomo.data.remote.weather.OpenMeteoService
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-/** Builds the Retrofit client for Ticketmaster. Created once, in AppContainer. */
-object TicketmasterApi {
+/** Builds the Retrofit clients. Created once, in AppContainer. */
+object ApiClients {
     private const val BASE_URL = "https://app.ticketmaster.com/"
     private const val API_KEY_PARAMETER = "apikey"
 
@@ -43,4 +44,12 @@ object TicketmasterApi {
             .build()
             .create(TicketmasterService::class.java)
     }
+
+    fun createOpenMeteoService(): OpenMeteoService =
+        Retrofit.Builder()
+            .baseUrl(OpenMeteoService.BASE_URL)
+            .client(OkHttpClient())
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(OpenMeteoService::class.java)
 }
