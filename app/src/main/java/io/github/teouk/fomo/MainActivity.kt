@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import io.github.teouk.fomo.databinding.ActivityMainBinding
+import io.github.teouk.fomo.ui.auth.SignInActivity
 import io.github.teouk.fomo.ui.discover.DiscoverFragment
 import io.github.teouk.fomo.ui.map.MapFragment
 import io.github.teouk.fomo.ui.plans.PlansFragment
@@ -19,6 +20,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The app needs an account (CW2 spec). Signed-out users go to the sign-in screen.
+        if ((application as FomoApplication).container.authRepository.currentAccount == null) {
+            startActivity(SignInActivity.newIntent(this))
+            finish()
+            return
+        }
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

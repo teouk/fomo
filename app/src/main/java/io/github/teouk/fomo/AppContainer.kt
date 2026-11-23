@@ -3,6 +3,7 @@ package io.github.teouk.fomo
 import android.content.Context
 import io.github.teouk.fomo.data.local.FomoDatabase
 import io.github.teouk.fomo.data.remote.ApiClients
+import io.github.teouk.fomo.data.repository.AuthRepository
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
 import io.github.teouk.fomo.data.repository.PreferencesRepository
@@ -40,4 +41,6 @@ class AppContainer(context: Context) {
     val weatherRepository = WeatherRepository(ApiClients.createOpenMeteoService())
 
     val reminderScheduler = ReminderScheduler(appContext)
+
+    val authRepository = AuthRepository()
 }
