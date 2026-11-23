@@ -49,8 +49,14 @@
 
     <!-- Placeholder tabs (replaced as each feature is built) -->
     <string name="placeholder_map">The map of nearby events will appear here.</string>
-    <string name="placeholder_plans">Your saved events and schedule will appear here.</string>
     <string name="placeholder_profile">Your profile and settings will appear here.</string>
+
+    <!-- My Plans -->
+    <string name="tab_schedule">Schedule</string>
+    <string name="tab_saved">Saved</string>
+    <string name="plans_empty_schedule">No plans yet. Open an event and tap \"Add to plans\" to build your schedule.</string>
+    <string name="plans_empty_saved">Nothing saved yet. Tap the bookmark on any event to keep it here.</string>
+    <string name="date_unknown">Date to be confirmed</string>
 
     <!-- Search & Filter -->
     <string name="action_back">Back</string>

@@ -1,16 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".ui.plans.PlansFragment">
 
     <TextView
-        android:id="@+id/text_placeholder"
+        android:id="@+id/text_plans_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/placeholder_plans"
-        android:textAppearance="?attr/textAppearanceBodyLarge" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:accessibilityHeading="true"
+        android:text="@string/nav_plans"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
-</FrameLayout>
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs_plans"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_schedule" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_saved" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_plans"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_event_row" />
+
+        <TextView
+            android:id="@+id/text_plans_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="32dp"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:visibility="gone"
+            tools:text="@string/plans_empty_schedule"
+            tools:visibility="visible" />
+
+    </FrameLayout>
+
+</LinearLayout>
