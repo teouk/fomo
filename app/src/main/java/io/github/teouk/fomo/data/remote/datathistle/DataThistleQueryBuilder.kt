@@ -13,15 +13,15 @@ object DataThistleQueryBuilder {
     val DEFAULT_LOOKAHEAD: Duration = Duration.ofDays(28)
 
     /**
-     * Our chips map to Data Thistle tags. TODO(api-token): check each tag against
-     * real responses; the spec's examples include "music", "film", "comedy", "sport", "kids".
+     * Our chips map to Data Thistle tags. Checked against a live response for Swansea
+     * (25/11/2026), which used "music", "film", "comedy", "theatre" and "family".
      */
     fun tagFor(category: Category): String = when (category) {
         Category.MUSIC -> "music"
         Category.SPORT -> "sport"
         Category.ARTS_THEATRE -> "theatre"
         Category.COMEDY -> "comedy"
-        Category.FAMILY -> "kids"
+        Category.FAMILY -> "family"
         Category.FILM -> "film"
     }
 

@@ -58,7 +58,7 @@ fun DtEventDto.toEvent(now: Instant): Event {
         minPrice = cheapest?.minPrice,
         currency = cheapest?.currency,
         venue = schedule?.place?.toVenue(),
-        distanceMiles = distance,
+        distanceMiles = schedule?.distance ?: schedule?.place?.distance,
     )
 }
 

@@ -25,8 +25,6 @@ data class DtEventDto(
     val descriptions: JsonElement? = null,
     val images: List<DtImageDto> = emptyList(),
     val schedules: List<DtScheduleDto> = emptyList(),
-    /** Miles from the searched point, present when searching with lat/lon/distance. */
-    @SerialName("_distance") val distance: Double? = null,
 )
 
 @Serializable
@@ -44,6 +42,8 @@ data class DtScheduleDto(
     @SerialName("end_ts") val endTs: String? = null,
     val place: DtPlaceDto? = null,
     val performances: List<DtPerformanceDto> = emptyList(),
+    /** Miles from the searched point, present when searching with lat/lon/distance. */
+    @SerialName("_distance") val distance: Double? = null,
 )
 
 @Serializable
@@ -55,6 +55,7 @@ data class DtPlaceDto(
     @SerialName("postal_code") val postalCode: String? = null,
     val lat: Double? = null,
     val lon: Double? = null,
+    @SerialName("_distance") val distance: Double? = null,
 )
 
 @Serializable

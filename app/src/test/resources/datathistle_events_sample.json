@@ -11,7 +11,7 @@
     "tags": ["music", "jazz"],
     "properties": [],
     "links": [],
-    "description": [
+    "descriptions": [
       { "type": "third-party", "description": "Live jazz on the waterfront with the Bay Big Band." }
     ],
     "images": [
@@ -37,7 +37,8 @@
           "town": "Swansea",
           "postal_code": "SA1 3BX",
           "lat": 51.6144,
-          "lon": -3.9436
+          "lon": -3.9436,
+          "_distance": 0.42
         },
         "performances": [
           {
@@ -59,8 +60,7 @@
           }
         ]
       }
-    ],
-    "_distance": 0.42
+    ]
   },
   {
     "event_id": "00000000-0000-0000-0000-000000000002",

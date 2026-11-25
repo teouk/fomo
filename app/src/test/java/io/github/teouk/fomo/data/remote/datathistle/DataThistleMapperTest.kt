@@ -10,9 +10,9 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /**
- * NOTE: datathistle_events_sample.json is written from the examples in Data Thistle's
- * OpenAPI spec, not saved from a live call. Replace it with a real response once the
- * access token works, and re-run these tests.
+ * datathistle_events_sample.json is hand-written but mirrors the shape of a live
+ * response checked on 25/11/2026 ("descriptions", distance on the place). Real listings
+ * are not stored in the repo because Data Thistle's terms limit caching to 24 hours.
  */
 class DataThistleMapperTest {
     private val json = Json { ignoreUnknownKeys = true }
