@@ -49,7 +49,21 @@
     <string name="nav_profile">Profile</string>
 
     <!-- Placeholder tabs (replaced as each feature is built) -->
-    <string name="placeholder_map">The map of nearby events will appear here.</string>
+
+    <!-- Map -->
+    <string name="map_status_near_you">Events near you</string>
+    <string name="map_status_near_area">Events in this area</string>
+    <string name="map_status_near_city">Events near %1$s</string>
+    <string name="map_location_off">Location is off, so the map starts at your home town.</string>
+    <string name="map_location_outside_uk">Your location is outside the UK, where listings are available, so the map starts at your home town.</string>
+    <string name="map_empty">No events found here. Zoom out or search another area.</string>
+    <string name="action_search_area">Search this area</string>
+    <string name="location_rationale_title">Show events near you?</string>
+    <string name="location_rationale_body">FOMO uses your approximate location to centre the map on events around you. Without it, the map starts at your home town.</string>
+    <plurals name="venue_event_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
 
     <!-- My Plans -->
     <string name="tab_schedule">Schedule</string>

@@ -15,6 +15,7 @@ val localProperties = Properties().apply {
 }
 val ticketmasterApiKey: String = localProperties.getProperty("TICKETMASTER_API_KEY", "")
 val dataThistleToken: String = localProperties.getProperty("DATATHISTLE_TOKEN", "")
+val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
 
 android {
     namespace = "io.github.teouk.fomo"
@@ -33,6 +34,8 @@ android {
 
         buildConfigField("String", "TICKETMASTER_API_KEY", "\"$ticketmasterApiKey\"")
         buildConfigField("String", "DATATHISTLE_TOKEN", "\"$dataThistleToken\"")
+        // The Maps SDK reads its key from the manifest; this fills ${MAPS_API_KEY} there.
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -77,6 +80,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -2,6 +2,7 @@ package io.github.teouk.fomo
 
 import android.content.Context
 import io.github.teouk.fomo.data.local.FomoDatabase
+import io.github.teouk.fomo.data.location.LocationRepository
 import io.github.teouk.fomo.data.remote.EventDataSource
 import io.github.teouk.fomo.data.remote.datathistle.DataThistleDataSource
 import io.github.teouk.fomo.data.remote.ticketmaster.TicketmasterDataSource
@@ -52,6 +53,8 @@ class AppContainer(context: Context) {
     val reminderScheduler = ReminderScheduler(appContext)
 
     val authRepository = AuthRepository()
+
+    val locationRepository = LocationRepository(appContext)
 
     private companion object {
         const val SAMPLE_PROVIDER_NAME = "Sample data"
