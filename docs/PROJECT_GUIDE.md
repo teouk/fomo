@@ -129,6 +129,7 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | `WeatherRepository.kt` | Forecast for a place and hour. | Returns `null` when there's no forecast (more than 16 days away, or offline). Weather is optional, so the card simply hides. |
 | `PreferencesRepository.kt` | `SettingsStore` interface + DataStore implementation. | Home town and reminder time. The interface exists so tests can use an in-memory fake. |
 | `AuthRepository.kt` | Wraps Firebase Authentication. | The rest of the app sees `Account` and `AuthError`, never Firebase classes. |
+| `ClashRepository.kt` | Which events in a list clash with the calendar. | Returns nothing when the feature is off or the permission is missing, so screens never check that themselves. One calendar query per list, then each event is checked in memory. |
 
 ### `data/ocr/`: the Poster Scanner (bonus feature)
 
@@ -136,6 +137,13 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 |---|---|---|
 | `PosterTextReader.kt` | `PosterReader` interface + `MlKitPosterReader`, which runs ML Kit Text Recognition v2 on a photo. | On-device OCR: the photo never leaves the phone. The bundled model works offline and without Play services. The interface lets tests use a fake reader. |
 | `PosterLineCleaner.kt` | Turns raw OCR lines into search suggestions. | Drops prices, phone numbers and web addresses, joins split titles ("THE" + "NUTCRACKER"), removes duplicates. Pure and tested. |
+
+### `data/calendar/`: Calendar Clash Check (bonus feature)
+
+| File | What | Why |
+|---|---|---|
+| `ClashChecker.kt` | `CalendarEntry`, `Clash`, and the rule that decides whether an event overlaps an entry. | Pure and tested. It assumes a 3-hour event (listings rarely give an end time, hence "May clash"), and ignores all-day, "free" and declined entries plus the event itself if you added it with "Add to calendar". |
+| `CalendarRepository.kt` | `CalendarSource` interface + the Calendar Provider query. | Queries `CalendarContract.Instances`, not `Events`, so a weekly lecture comes back as one row per week with real times (CW1 decision). Runs on `Dispatchers.IO`; calendar data never leaves the phone. |
 
 ### `data/location/`
 
@@ -152,7 +160,7 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `discover/` | `DiscoverFragment`, `DiscoverViewModel` | `DiscoverUiState` is the whole screen as one value. |
 | `details/` | `EventDetailsActivity`, `EventDetailsViewModel` | `DetailsMessage` via a `Channel`: one-off Snackbars that must not reappear after rotation. Also asks for the notification permission and starts the Calendar Intent. |
 | `plans/` | `PlansFragment`, `PlansViewModel`, `PlansAdapter` | The adapter has two view types: day headers and event rows. |
-| `profile/` | `ProfileFragment`, `ProfileViewModel` | Account, home town, reminder time, sign out. |
+| `profile/` | `ProfileFragment`, `ProfileViewModel` | Account, home town, reminder time, the clash-check switch (asks for `READ_CALENDAR` when switched on), sign out. |
 | `auth/` | `SignInActivity`, `SignInViewModel`, `CredentialsValidator` | The form is checked locally before Firebase is called. |
 | `search/` | `SearchActivity`, `SearchViewModel` | Filters live in `SavedStateHandle`; `debounce(500 ms)` waits for the user to pause before searching. `dateWindowFor()` turns the "When" buttons into a time window (tested). Also hosts the **Poster Scanner**: `TakePicture` (camera app, FileProvider URI, no CAMERA permission) or `PickVisualMedia` (Photo Picker, no storage permission), then `PosterState` chips; tapping one fills the keyword. |
 | `map/` | `MapFragment`, `MapViewModel` | Google Maps hosted as a child `SupportMapFragment`. `groupByVenue()` makes one marker per venue (tested). The location permission is asked at the moment of use, with a rationale. |
@@ -267,6 +275,8 @@ When you look at an unfamiliar line, ask these questions in order.
 | Debouncing user input with Flow | `SearchViewModel` (`debounce` + `collectLatest`) |
 | Camera and photo picker via Activity Result APIs; FileProvider | `SearchActivity.takePicture`, `pickPhoto`, `openCamera` |
 | On-device machine learning | `MlKitPosterReader` |
+| Content providers (reading another app's data) | `CalendarRepository` (`CalendarContract.Instances`) |
+| A bug found by testing, and its regression test | `DiscoverViewModelTest.clashCheck_sameEventAtDifferentTimesInEachList_isCheckedPerShowing` |
 | Networking: Retrofit, OkHttp interceptors, JSON | `ApiClients.kt`, `DataThistleService.kt` |
 | Background work and coroutines | `EventRepository.load`, `DiscoverViewModel.load` (`async`) |
 | Local database (Room) and reactive queries | `data/local/`, `LibraryRepository` |
