@@ -3,6 +3,8 @@ package io.github.teouk.fomo
 import android.content.Context
 import io.github.teouk.fomo.data.local.FomoDatabase
 import io.github.teouk.fomo.data.location.LocationRepository
+import io.github.teouk.fomo.data.ocr.MlKitPosterReader
+import io.github.teouk.fomo.data.ocr.PosterReader
 import io.github.teouk.fomo.data.remote.EventDataSource
 import io.github.teouk.fomo.data.remote.datathistle.DataThistleDataSource
 import io.github.teouk.fomo.data.remote.ApiClients
@@ -42,5 +44,7 @@ class AppContainer(context: Context) {
     val authRepository = AuthRepository()
 
     val locationRepository = LocationRepository(appContext)
+
+    val posterReader: PosterReader = MlKitPosterReader(appContext)
 
 }

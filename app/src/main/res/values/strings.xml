@@ -109,6 +109,13 @@
     <string name="date_pick">Dates</string>
     <string name="filter_only_free">Only when I\'m free</string>
     <string name="action_clear_all">Clear all</string>
+    <string name="label_from_poster">From your poster</string>
+    <string name="poster_hint">Tap a line to search for it.</string>
+    <string name="poster_reading">Reading the poster…</string>
+    <string name="poster_no_text">No text found in that photo. Try again closer to the poster.</string>
+    <string name="poster_error">Couldn\'t read that photo. Please try another one.</string>
+    <string name="poster_take_photo">Take a photo</string>
+    <string name="poster_choose_photo">Choose from your photos</string>
     <string name="search_distance">Within %1$d miles of %2$s</string>
     <string name="search_error_title">Couldn\'t load events</string>
     <string name="date_range_title">Choose dates</string>

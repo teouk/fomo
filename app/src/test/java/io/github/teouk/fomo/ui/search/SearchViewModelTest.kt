@@ -47,8 +47,22 @@ class SearchViewModelTest {
         libraryRepository = LibraryRepository(FakeSavedEventDao()),
         settings = FakeSettings(),
         savedStateHandle = handle,
+        posterReader = posterReader,
         clock = clock,
     )
+
+    /** Pretends to be ML Kit: returns whatever lines the test sets. */
+    private class FakePosterReader : io.github.teouk.fomo.data.ocr.PosterReader {
+        var lines: List<String> = emptyList()
+        var failure: Exception? = null
+
+        override suspend fun readLines(photoUri: String): List<String> {
+            failure?.let { throw it }
+            return lines
+        }
+    }
+
+    private val posterReader = FakePosterReader()
 
     @Test
     fun setKeyword_typedQuickly_sendsOneRequestAfterPause() = runTest(mainDispatcherRule.dispatcher) {
@@ -105,6 +119,36 @@ class SearchViewModelTest {
         assertEquals("comedy", restored.keyword)
         assertEquals(setOf(Category.COMEDY), restored.categories)
         assertEquals(30, restored.radiusMiles)
+    }
+
+    @Test
+    fun readPoster_photoWithText_offersCleanedLines() = runTest(mainDispatcherRule.dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        posterReader.lines = listOf("THE HARBOUR LIGHTS", "£15", "BRANGWYN HALL")
+        viewModel.readPoster("content://poster")
+        advanceUntilIdle()
+        assertEquals(PosterState.Lines(listOf("THE HARBOUR LIGHTS", "BRANGWYN HALL")), viewModel.uiState.value.poster)
+    }
+
+    @Test
+    fun readPoster_noUsefulText_reportsNoText() = runTest(mainDispatcherRule.dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        posterReader.lines = listOf("£15", "~")
+        viewModel.readPoster("content://poster")
+        advanceUntilIdle()
+        assertEquals(PosterState.NoText, viewModel.uiState.value.poster)
+    }
+
+    @Test
+    fun readPoster_unreadableImage_reportsFailed() = runTest(mainDispatcherRule.dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        posterReader.failure = java.io.IOException("corrupt image")
+        viewModel.readPoster("content://poster")
+        advanceUntilIdle()
+        assertEquals(PosterState.Failed, viewModel.uiState.value.poster)
     }
 
     @Test

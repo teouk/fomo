@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only folder FileProvider may share: poster photos in the app's cache. -->
+<paths>
+    <cache-path
+        name="posters"
+        path="posters/" />
+</paths>

@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.teouk.fomo.FomoApplication
+import io.github.teouk.fomo.data.ocr.PosterLineCleaner
+import io.github.teouk.fomo.data.ocr.PosterReader
 import io.github.teouk.fomo.data.repository.DataError
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
@@ -20,6 +22,7 @@ import io.github.teouk.fomo.model.Event
 import io.github.teouk.fomo.model.EventFilter
 import io.github.teouk.fomo.ui.common.EventListItem
 import io.github.teouk.fomo.util.Distance
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,8 +58,22 @@ data class SearchFilters(
     }
 }
 
+/** The Poster Scanner panel on the Search screen (bonus feature). */
+sealed interface PosterState {
+    data object Hidden : PosterState
+
+    data object Reading : PosterState
+
+    data class Lines(val lines: List<String>) : PosterState
+
+    data object NoText : PosterState
+
+    data object Failed : PosterState
+}
+
 data class SearchUiState(
     val filters: SearchFilters = SearchFilters(),
+    val poster: PosterState = PosterState.Hidden,
     val city: City = City.DEFAULT,
     val isLoading: Boolean = true,
     val results: List<EventListItem> = emptyList(),
@@ -78,10 +95,12 @@ class SearchViewModel(
     private val libraryRepository: LibraryRepository,
     private val settings: SettingsStore,
     private val savedStateHandle: SavedStateHandle,
+    private val posterReader: PosterReader,
     private val clock: Clock = Clock.systemUTC(),
 ) : ViewModel() {
 
     private val filters = MutableStateFlow(restoreFilters())
+    private val poster = MutableStateFlow<PosterState>(PosterState.Hidden)
     private val refreshRequests = MutableStateFlow(0)
 
     private data class Loaded(
@@ -94,9 +113,10 @@ class SearchViewModel(
     private val loaded = MutableStateFlow(Loaded())
 
     val uiState: StateFlow<SearchUiState> =
-        combine(filters, loaded, libraryRepository.statuses) { filters, data, statuses ->
+        combine(filters, loaded, libraryRepository.statuses, poster) { filters, data, statuses, poster ->
             SearchUiState(
                 filters = filters,
+                poster = poster,
                 city = data.city,
                 isLoading = data.isLoading,
                 results = data.events.map { event ->
@@ -147,6 +167,32 @@ class SearchViewModel(
     }
 
     fun clearAll() = updateFilters { SearchFilters() }
+
+    /**
+     * Where the camera app should save the next photo. Kept in SavedStateHandle because
+     * Android may kill FOMO while the camera is open, and the result must still be found.
+     */
+    var pendingPhotoUri: String?
+        get() = savedStateHandle[KEY_PENDING_PHOTO]
+        set(value) {
+            savedStateHandle[KEY_PENDING_PHOTO] = value
+        }
+
+    /** Reads the text on a poster photo and offers its lines as search suggestions. */
+    fun readPoster(photoUri: String) {
+        viewModelScope.launch {
+            poster.value = PosterState.Reading
+            poster.value = try {
+                val lines = PosterLineCleaner.clean(posterReader.readLines(photoUri))
+                if (lines.isEmpty()) PosterState.NoText else PosterState.Lines(lines)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // A corrupt or unreadable image; ML Kit reports these as exceptions.
+                PosterState.Failed
+            }
+        }
+    }
 
     fun retry() {
         refreshRequests.update { it + 1 }
@@ -209,6 +255,7 @@ class SearchViewModel(
         private const val KEY_CUSTOM_START = "custom_start"
         private const val KEY_CUSTOM_END = "custom_end"
         private const val KEY_RADIUS = "radius"
+        private const val KEY_PENDING_PHOTO = "pending_photo"
 
         /** The "When" choice as a time window, or null for "any date". Pure, so it is unit-tested. */
         fun dateWindowFor(filters: SearchFilters, now: ZonedDateTime): DateWindow? = when (filters.datePreset) {
@@ -231,6 +278,7 @@ class SearchViewModel(
                     libraryRepository = container.libraryRepository,
                     settings = container.settings,
                     savedStateHandle = createSavedStateHandle(),
+                    posterReader = container.posterReader,
                 )
             }
         }

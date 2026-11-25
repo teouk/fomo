@@ -1,13 +1,18 @@
 package io.github.teouk.fomo.ui.search
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +21,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.chip.Chip
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -28,6 +34,7 @@ import io.github.teouk.fomo.ui.common.EventRowAdapter
 import io.github.teouk.fomo.ui.common.messageRes
 import io.github.teouk.fomo.ui.details.EventDetailsActivity
 import kotlinx.coroutines.launch
+import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -41,6 +48,25 @@ class SearchActivity : AppCompatActivity() {
         onEventClick = { startActivity(EventDetailsActivity.newIntent(this, it.id)) },
         onSaveClick = { viewModel.toggleSave(it) },
     )
+
+    /** The lines currently shown as poster chips, so chips are only rebuilt when they change. */
+    private var shownPosterLines: List<String>? = null
+
+    /**
+     * Poster Scanner (bonus feature). TakePicture hands the photo to the phone's camera
+     * app, so FOMO needs no CAMERA permission (and must not declare one, or the camera
+     * Intent would require it). The photo goes to a FileProvider URI in FOMO's cache.
+     */
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val uri = viewModel.pendingPhotoUri
+        if (saved && uri != null) viewModel.readPoster(uri)
+        viewModel.pendingPhotoUri = null
+    }
+
+    /** The system Photo Picker: no storage permission needed, and only the chosen photo is shared. */
+    private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.readPoster(it.toString()) }
+    }
 
     private val chipCategories by lazy {
         mapOf(
@@ -74,12 +100,20 @@ class SearchActivity : AppCompatActivity() {
         }
 
         binding.toolbarSearch.setNavigationOnClickListener { finish() }
+        binding.toolbarSearch.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_scan_poster) showPosterSourceDialog()
+            item.itemId == R.id.action_scan_poster
+        }
         binding.recyclerResults.adapter = adapter
         // "Only when I'm free" belongs to the Calendar Clash Check bonus feature.
         binding.chipOnlyFree.isVisible = false
 
         restoreKeyword()
         setUpListeners()
+        // Opened from Discover's camera button: go straight to the scanner (once, not after rotation).
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_SCAN_POSTER, false)) {
+            showPosterSourceDialog()
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -124,6 +158,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun render(state: SearchUiState) {
+        renderPoster(state.poster)
         val filters = state.filters
         // Only touch a control when it differs from the state, so redrawing never
         // re-triggers its listener or moves the text cursor.
@@ -163,6 +198,66 @@ class SearchActivity : AppCompatActivity() {
             binding.buttonEmptyClearAll.setText(R.string.action_clear_all)
             binding.buttonEmptyClearAll.setOnClickListener { clearAll() }
         }
+    }
+
+    private fun renderPoster(poster: PosterState) {
+        binding.layoutPoster.isVisible = poster != PosterState.Hidden
+        binding.progressPoster.isVisible = poster == PosterState.Reading
+        binding.textPosterStatus.setText(
+            when (poster) {
+                PosterState.Reading -> R.string.poster_reading
+                PosterState.NoText -> R.string.poster_no_text
+                PosterState.Failed -> R.string.poster_error
+                else -> R.string.poster_hint
+            },
+        )
+        val lines = (poster as? PosterState.Lines)?.lines.orEmpty()
+        if (lines == shownPosterLines) return
+        shownPosterLines = lines
+        binding.chipGroupPosterLines.removeAllViews()
+        lines.forEach { line ->
+            val chip = Chip(this).apply {
+                text = line
+                setOnClickListener { searchFor(line) }
+            }
+            binding.chipGroupPosterLines.addView(chip)
+        }
+    }
+
+    /** A tapped poster line becomes the keyword; the text field's listener does the rest. */
+    private fun searchFor(line: String) {
+        binding.editSearch.setText(line)
+        binding.editSearch.setSelection(line.length)
+    }
+
+    private fun showPosterSourceDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.action_scan_poster)
+            .setItems(arrayOf(getString(R.string.poster_take_photo), getString(R.string.poster_choose_photo))) { _, which ->
+                if (which == 0) openCamera() else openPhotoPicker()
+            }
+            .show()
+    }
+
+    private fun openCamera() {
+        // Only the latest poster is kept; older ones are deleted before taking a new one.
+        val folder = File(cacheDir, POSTER_FOLDER).apply {
+            deleteRecursively()
+            mkdirs()
+        }
+        val photo = File(folder, "poster_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(this, "$packageName$FILE_PROVIDER_SUFFIX", photo)
+        viewModel.pendingPhotoUri = uri.toString()
+        try {
+            takePicture.launch(uri)
+        } catch (e: ActivityNotFoundException) {
+            viewModel.pendingPhotoUri = null
+            Toast.makeText(this, R.string.error_no_app, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openPhotoPicker() {
+        pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     private fun clearAll() {
@@ -207,6 +302,8 @@ class SearchActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_SCAN_POSTER = "io.github.teouk.fomo.extra.SCAN_POSTER"
         private const val DATE_PICKER_TAG = "date_range_picker"
+        private const val POSTER_FOLDER = "posters"
+        private const val FILE_PROVIDER_SUFFIX = ".fileprovider"
 
         /**
          * Builds the Intent that opens this screen, so callers never construct it by hand.
