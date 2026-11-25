@@ -48,11 +48,14 @@ class EventDetailsActivity : AppCompatActivity() {
     private var descriptionExpanded = false
 
     /**
-     * Android 13+ asks the user before an app may post notifications. The result
-     * arrives here; the plan is added either way, only the reminder depends on it.
+     * Android 13+ asks the user before an app may post notifications. The plan is added
+     * only after the answer: a reminder for an event starting soon runs straight away, and
+     * if it ran before "Allow" was tapped its notification would be silently dropped
+     * (found when testing on the API 35 emulator). The plan is added either way.
      */
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            viewModel.togglePlan()
             if (!granted) Snackbar.make(binding.root, R.string.reminders_off, Snackbar.LENGTH_LONG).show()
         }
 
@@ -75,8 +78,7 @@ class EventDetailsActivity : AppCompatActivity() {
         }
         binding.fabAddToPlans.setOnClickListener {
             val adding = !viewModel.uiState.value.status.isPlanned
-            viewModel.togglePlan()
-            if (adding) askForNotificationsIfNeeded()
+            if (adding) addPlanAskingForNotificationsFirst() else viewModel.togglePlan()
         }
         binding.buttonDetailsRetry.setOnClickListener { viewModel.load() }
         binding.buttonReadMore.setOnClickListener {
@@ -214,19 +216,24 @@ class EventDetailsActivity : AppCompatActivity() {
         }
     }
 
-    /** Asks for the notification permission at the moment it is needed, with a reason first. */
-    private fun askForNotificationsIfNeeded() {
+    /**
+     * Asks for the notification permission at the moment it is needed (with a reason
+     * first if the user said no before), then adds the plan once they have answered.
+     */
+    private fun addPlanAskingForNotificationsFirst() {
         val permission = Manifest.permission.POST_NOTIFICATIONS
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) return
-        if (shouldShowRequestPermissionRationale(permission)) {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.notification_rationale_title)
-                .setMessage(R.string.notification_rationale_body)
-                .setPositiveButton(R.string.action_allow) { _, _ -> notificationPermission.launch(permission) }
-                .setNegativeButton(R.string.action_not_now, null)
-                .show()
-        } else {
-            notificationPermission.launch(permission)
+        when {
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED ->
+                viewModel.togglePlan()
+            shouldShowRequestPermissionRationale(permission) ->
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.notification_rationale_title)
+                    .setMessage(R.string.notification_rationale_body)
+                    .setPositiveButton(R.string.action_allow) { _, _ -> notificationPermission.launch(permission) }
+                    .setNegativeButton(R.string.action_not_now) { _, _ -> viewModel.togglePlan() }
+                    .setOnCancelListener { viewModel.togglePlan() }
+                    .show()
+            else -> notificationPermission.launch(permission)
         }
     }
 
