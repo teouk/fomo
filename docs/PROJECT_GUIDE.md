@@ -130,6 +130,13 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | `PreferencesRepository.kt` | `SettingsStore` interface + DataStore implementation. | Home town and reminder time. The interface exists so tests can use an in-memory fake. |
 | `AuthRepository.kt` | Wraps Firebase Authentication. | The rest of the app sees `Account` and `AuthError`, never Firebase classes. |
 
+### `data/ocr/`: the Poster Scanner (bonus feature)
+
+| File | What | Why |
+|---|---|---|
+| `PosterTextReader.kt` | `PosterReader` interface + `MlKitPosterReader`, which runs ML Kit Text Recognition v2 on a photo. | On-device OCR: the photo never leaves the phone. The bundled model works offline and without Play services. The interface lets tests use a fake reader. |
+| `PosterLineCleaner.kt` | Turns raw OCR lines into search suggestions. | Drops prices, phone numbers and web addresses, joins split titles ("THE" + "NUTCRACKER"), removes duplicates. Pure and tested. |
+
 ### `data/location/`
 
 | File | What | Why |
@@ -147,7 +154,7 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `plans/` | `PlansFragment`, `PlansViewModel`, `PlansAdapter` | The adapter has two view types: day headers and event rows. |
 | `profile/` | `ProfileFragment`, `ProfileViewModel` | Account, home town, reminder time, sign out. |
 | `auth/` | `SignInActivity`, `SignInViewModel`, `CredentialsValidator` | The form is checked locally before Firebase is called. |
-| `search/` | `SearchActivity`, `SearchViewModel` | Filters live in `SavedStateHandle`; `debounce(500 ms)` waits for the user to pause before searching. `dateWindowFor()` turns the "When" buttons into a time window (tested). |
+| `search/` | `SearchActivity`, `SearchViewModel` | Filters live in `SavedStateHandle`; `debounce(500 ms)` waits for the user to pause before searching. `dateWindowFor()` turns the "When" buttons into a time window (tested). Also hosts the **Poster Scanner**: `TakePicture` (camera app, FileProvider URI, no CAMERA permission) or `PickVisualMedia` (Photo Picker, no storage permission), then `PosterState` chips; tapping one fills the keyword. |
 | `map/` | `MapFragment`, `MapViewModel` | Google Maps hosted as a child `SupportMapFragment`. `groupByVenue()` makes one marker per venue (tested). The location permission is asked at the moment of use, with a rationale. |
 | `common/` | `EventAdapters`, `EventCardBinder`, `EventFormatter`, `EventListItem`, `ErrorMessages` | Shared by several screens: list adapters with `DiffUtil`, one function that fills an event card, text formatting (tested), and `DataError` → string resource. |
 
@@ -168,7 +175,7 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `app/build.gradle.kts` | The app module: SDK levels, ViewBinding, dependencies, and the `buildConfigField`s that copy secrets from `local.properties` into `BuildConfig`. | Like `pom.xml` in Maven. |
 | `gradle/libs.versions.toml` | The **version catalog**: every library and version, once. | Build files write `libs.retrofit` instead of a version string, so upgrading is a one-line change. |
 | `local.properties` | `sdk.dir`, `DATATHISTLE_TOKEN`, `MAPS_API_KEY` | **Git-ignored.** Secrets never reach GitHub. `app/build.gradle.kts` copies the token into `BuildConfig` and the Maps key into the manifest (`manifestPlaceholders`). |
-| `app/src/main/AndroidManifest.xml` | Declares the Application class, every Activity, permissions (`INTERNET`, `POST_NOTIFICATIONS`, `ACCESS_COARSE_LOCATION`) and the Maps key. | Android only knows about components listed here. |
+| `app/src/main/AndroidManifest.xml` | Declares the Application class, every Activity, permissions (`INTERNET`, `POST_NOTIFICATIONS`, `ACCESS_COARSE_LOCATION`), the Maps key and the `FileProvider` that lets the camera app save into FOMO's cache (`res/xml/file_paths.xml`). | Android only knows about components listed here. |
 | `app/google-services.json` | Firebase project settings. | Read by the Google Services Gradle plugin. Kept out of git. |
 
 ### Resources (`app/src/main/res/`)
@@ -258,6 +265,8 @@ When you look at an unfamiliar line, ask these questions in order.
 | Runtime permission with a rationale | `EventDetailsActivity.askForNotificationsIfNeeded`, `MapFragment.askForLocationOrStart` |
 | Maps and location | `MapFragment` (Google Maps SDK), `LocationRepository` (Fused Location Provider) |
 | Debouncing user input with Flow | `SearchViewModel` (`debounce` + `collectLatest`) |
+| Camera and photo picker via Activity Result APIs; FileProvider | `SearchActivity.takePicture`, `pickPhoto`, `openCamera` |
+| On-device machine learning | `MlKitPosterReader` |
 | Networking: Retrofit, OkHttp interceptors, JSON | `ApiClients.kt`, `DataThistleService.kt` |
 | Background work and coroutines | `EventRepository.load`, `DiscoverViewModel.load` (`async`) |
 | Local database (Room) and reactive queries | `data/local/`, `LibraryRepository` |
