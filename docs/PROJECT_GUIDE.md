@@ -82,7 +82,7 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | File | What it is | Why |
 |---|---|---|
 | `FomoApplication.kt` | Subclass of `Application`. Android creates it once, before any screen. | The right owner for objects that must live as long as the app. Creates `AppContainer` and the notification channel. Registered in the manifest with `android:name`. |
-| `AppContainer.kt` | Builds every repository and API client once. | **Manual dependency injection**: no screen builds its own Retrofit or database. It also chooses the events source from `local.properties`: Data Thistle, otherwise Ticketmaster, otherwise sample data. |
+| `AppContainer.kt` | Builds every repository and API client once. | **Manual dependency injection**: no screen builds its own Retrofit or database. It reads the Data Thistle token from `BuildConfig`. |
 | `MainActivity.kt` | The launcher Activity. Hosts the four tabs. | It only owns `fragment_container` and `bottom_nav`, and swaps Fragments when a tab is tapped. If nobody is signed in, it sends you to `SignInActivity` first. |
 
 ### `model/`: the app's own data types (pure Kotlin, no Android)
@@ -92,7 +92,7 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | `Event.kt` | `Event` and `Venue` data classes. | The one shape every screen uses. No API's JSON shape leaks into the UI. Missing information is `null`, so the compiler forces screens to handle "Price TBC". |
 | `EventFilter.kt` | What the user is looking for: location, radius, keyword, categories, date window. | Discover and Search describe their request the same way, so the data layer has a single input type. |
 | `DateWindow.kt` | Start and end `Instant`s, plus factories `today`, `weekend`, `next7Days` and `between`. | Date maths in one tested place, done in UK time. |
-| `Category.kt` | The chip categories as an enum. | A fixed set of values the compiler checks (no typo-prone strings). |
+| `Category.kt` | The chip categories as an enum. | A fixed set of values the compiler checks (no typo-prone strings). `DataThistleQueryBuilder.tagFor()` turns each into an API tag. |
 | `City.kt` | The towns you can pick, with coordinates. | "Chosen location" from the spec, working offline with no geocoding API. |
 | `Weather.kt` | `WeatherCondition` (with the WMO-code mapping) and `WeatherForecast`. | Turns Open-Meteo's numbers into something the UI can name. |
 
@@ -101,14 +101,13 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | File | What | Why |
 |---|---|---|
 | `EventDataSource.kt` | **Interface**: `search(filter)` and `getEvent(id)`. | The key abstraction. The repository depends on this interface, never on a specific API. |
-| `ApiClients.kt` | Builds the Retrofit clients: Data Thistle, Ticketmaster, Open-Meteo. | One place configures JSON parsing, auth headers and debug logging. |
+| `ApiClients.kt` | Builds the Retrofit clients for Data Thistle and Open-Meteo. | One place configures JSON parsing, the auth header and debug logging. |
 | `datathistle/DataThistleService.kt` | Retrofit interface. `@GET("events")` and `@GET("event/{eventId}")`. | Retrofit generates the HTTP code from these annotations. You never write networking code by hand. |
 | `datathistle/DtDtos.kt` | `@Serializable` classes that mirror Data Thistle's JSON. | DTO = Data Transfer Object. Only for parsing; the mapper turns them into `Event`. |
 | `datathistle/DataThistleQueryBuilder.kt` | `EventFilter` → URL query parameters. | Pure and unit-tested, so we know exactly what we send. |
 | `datathistle/DataThistleMapper.kt` | `DtEventDto.toEvent(now)`. | Flattens schedules → performances → tickets into one `Event`: next showing, cheapest price, booking link. |
 | `datathistle/DataThistleTime.kt` | Lenient timestamp parser. | The API's examples use three different date formats. |
 | `datathistle/DataThistleDataSource.kt` | Implements `EventDataSource` using the pieces above. | Also turns several chips (any of them) into several requests, because Data Thistle's `tags` means "all of them". |
-| `ticketmaster/…` | The same pieces for Ticketmaster. | Kept because it already works and is tested. If a key ever arrives, adding it to `local.properties` switches the app over. |
 | `weather/OpenMeteoService.kt` | Retrofit interface + DTOs for Open-Meteo. | The weather card, and the brief's "second external API". |
 
 ### `data/local/`: the on-phone database (Room)
@@ -131,11 +130,11 @@ Paths below are relative to `app/src/main/java/io/github/teouk/fomo/`.
 | `PreferencesRepository.kt` | `SettingsStore` interface + DataStore implementation. | Home town and reminder time. The interface exists so tests can use an in-memory fake. |
 | `AuthRepository.kt` | Wraps Firebase Authentication. | The rest of the app sees `Account` and `AuthError`, never Firebase classes. |
 
-### `data/sample/`
+### `data/location/`
 
 | File | What | Why |
 |---|---|---|
-| `SampleTicketmasterService.kt` | Offline events in Ticketmaster's format, dated relative to today. | Only used when **no** API secret is configured. It also powers the fast ViewModel unit test. |
+| `LocationRepository.kt` | The phone's approximate position from Google Play's Fused Location Provider, plus `GeoPoint` and its `isInUk` check. | The Map tab centres on you. If location is off, unavailable or outside the UK (Data Thistle only lists UK events), the map uses your home town. |
 
 ### `ui/`: screens, organised by feature
 
@@ -148,8 +147,8 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `plans/` | `PlansFragment`, `PlansViewModel`, `PlansAdapter` | The adapter has two view types: day headers and event rows. |
 | `profile/` | `ProfileFragment`, `ProfileViewModel` | Account, home town, reminder time, sign out. |
 | `auth/` | `SignInActivity`, `SignInViewModel`, `CredentialsValidator` | The form is checked locally before Firebase is called. |
-| `search/` | `SearchActivity` | Layout from CW1. Filtering logic still to be wired up. |
-| `map/` | `MapFragment` | Placeholder, still to be built. |
+| `search/` | `SearchActivity`, `SearchViewModel` | Filters live in `SavedStateHandle`; `debounce(500 ms)` waits for the user to pause before searching. `dateWindowFor()` turns the "When" buttons into a time window (tested). |
+| `map/` | `MapFragment`, `MapViewModel` | Google Maps hosted as a child `SupportMapFragment`. `groupByVenue()` makes one marker per venue (tested). The location permission is asked at the moment of use, with a rationale. |
 | `common/` | `EventAdapters`, `EventCardBinder`, `EventFormatter`, `EventListItem`, `ErrorMessages` | Shared by several screens: list adapters with `DiffUtil`, one function that fills an event card, text formatting (tested), and `DataError` → string resource. |
 
 ### `work/` and `util/`
@@ -159,7 +158,6 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `work/ReminderScheduler.kt` | Enqueues a WorkManager job per planned event. | Runs even if the app is closed. A unique name per event means it can be cancelled. `reminderDelay()` is pure and tested. |
 | `work/ReminderWorker.kt` | The job: builds and shows the notification. | Also creates the notification channel (needed on Android 8+). |
 | `util/Distance.kt` | Haversine formula, in miles. | "0.8 mi" on cards. |
-| `util/GeoHash.kt` | Encodes lat/lon as a geohash. | Needed by Ticketmaster's `geoPoint`. Data Thistle uses plain lat/lon. |
 
 ### Build and configuration files (project root)
 
@@ -169,8 +167,8 @@ Each screen has the same pair of files: an **Activity or Fragment** (draws) and 
 | `build.gradle.kts` (root) | Declares plugins for all modules (`apply false`). | Pins plugin versions in one place. |
 | `app/build.gradle.kts` | The app module: SDK levels, ViewBinding, dependencies, and the `buildConfigField`s that copy secrets from `local.properties` into `BuildConfig`. | Like `pom.xml` in Maven. |
 | `gradle/libs.versions.toml` | The **version catalog**: every library and version, once. | Build files write `libs.retrofit` instead of a version string, so upgrading is a one-line change. |
-| `local.properties` | `sdk.dir`, `DATATHISTLE_TOKEN`, … | **Git-ignored.** Secrets never reach GitHub. |
-| `app/src/main/AndroidManifest.xml` | Declares the Application class, every Activity, and permissions (`INTERNET`, `POST_NOTIFICATIONS`). | Android only knows about components listed here. |
+| `local.properties` | `sdk.dir`, `DATATHISTLE_TOKEN`, `MAPS_API_KEY` | **Git-ignored.** Secrets never reach GitHub. `app/build.gradle.kts` copies the token into `BuildConfig` and the Maps key into the manifest (`manifestPlaceholders`). |
+| `app/src/main/AndroidManifest.xml` | Declares the Application class, every Activity, permissions (`INTERNET`, `POST_NOTIFICATIONS`, `ACCESS_COARSE_LOCATION`) and the Maps key. | Android only knows about components listed here. |
 | `app/google-services.json` | Firebase project settings. | Read by the Google Services Gradle plugin. Kept out of git. |
 
 ### Resources (`app/src/main/res/`)
@@ -189,11 +187,11 @@ They run on your Mac with `./gradlew testDebugUnitTest`. **Naming style:** `func
 
 | File | Tests |
 |---|---|
-| `datathistle/*Test`, `ticketmaster/*Test` | JSON parsing, mapping and query building for each API, from saved JSON in `src/test/resources`. |
+| `datathistle/*Test` | JSON parsing, mapping, timestamps and query building for Data Thistle, using hand-written JSON in `src/test/resources` that mirrors a real response. |
 | `EventRepositoryTest` | Caching, cache expiry, and every error code, using a **fake** data source and a **fake clock**. |
-| `DiscoverViewModelTest` | ViewModel state changes: load, chip, city, save. Uses `MainDispatcherRule`, because `viewModelScope` normally needs Android's main thread. |
-| `FakeSavedEventDao` | An in-memory stand-in for Room. Tests use fakes, not mocks. |
-| Others | Formatter, distance, weather codes, reminder delay, day grouping, date windows, geohash, email validation. |
+| `DiscoverViewModelTest`, `SearchViewModelTest` | ViewModel state changes. Uses `MainDispatcherRule`, because `viewModelScope` normally needs Android's main thread. The Search test moves **virtual time** to check the 500 ms debounce, and rebuilds the ViewModel from the same `SavedStateHandle` to simulate process death. |
+| `FakeEventDataSource`, `FakeSavedEventDao`, `FakeSettings` | Test-only stand-ins for the API, Room and DataStore. They live in `src/test`, so they are never part of the app. Tests use fakes, not mocks. |
+| Others | Formatter, distance, weather codes, reminder delay, day grouping, venue grouping, UK check, date windows, email validation. |
 
 ---
 
@@ -257,7 +255,9 @@ When you look at an unfamiliar line, ask these questions in order.
 | Lifecycle-aware collection | `repeatOnLifecycle(Lifecycle.State.STARTED)` in every screen |
 | RecyclerView, `ListAdapter`, `DiffUtil`, multiple view types | `ui/common/EventAdapters.kt`, `ui/plans/PlansAdapter.kt` |
 | Intents: explicit (between screens) and implicit (browser, Maps, Calendar) | `EventDetailsActivity.newIntent`, `openUri`, `addToCalendar` |
-| Runtime permission with a rationale | `EventDetailsActivity.askForNotificationsIfNeeded` |
+| Runtime permission with a rationale | `EventDetailsActivity.askForNotificationsIfNeeded`, `MapFragment.askForLocationOrStart` |
+| Maps and location | `MapFragment` (Google Maps SDK), `LocationRepository` (Fused Location Provider) |
+| Debouncing user input with Flow | `SearchViewModel` (`debounce` + `collectLatest`) |
 | Networking: Retrofit, OkHttp interceptors, JSON | `ApiClients.kt`, `DataThistleService.kt` |
 | Background work and coroutines | `EventRepository.load`, `DiscoverViewModel.load` (`async`) |
 | Local database (Room) and reactive queries | `data/local/`, `LibraryRepository` |
