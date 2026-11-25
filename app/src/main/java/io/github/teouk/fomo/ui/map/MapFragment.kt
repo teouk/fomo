@@ -140,7 +140,7 @@ class MapFragment : Fragment() {
         binding.textMapStatus.text = when (state.centreSource) {
             MapCentre.DEVICE_LOCATION -> getString(R.string.map_status_near_you)
             MapCentre.CHOSEN_AREA -> getString(R.string.map_status_near_area)
-            MapCentre.HOME_TOWN, MapCentre.HOME_TOWN_OUTSIDE_UK ->
+            MapCentre.HOME_TOWN, MapCentre.HOME_TOWN_NO_FIX, MapCentre.HOME_TOWN_OUTSIDE_UK ->
                 getString(R.string.map_status_near_city, state.homeCity.displayName)
         }
         binding.textMapDetail.text = when {
@@ -148,6 +148,7 @@ class MapFragment : Fragment() {
             state.isEmpty -> getString(R.string.map_empty)
             state.centreSource == MapCentre.HOME_TOWN && state.centre != null -> getString(R.string.map_location_off)
             state.centreSource == MapCentre.HOME_TOWN_OUTSIDE_UK -> getString(R.string.map_location_outside_uk)
+            state.centreSource == MapCentre.HOME_TOWN_NO_FIX -> getString(R.string.map_location_unavailable)
             else -> getString(R.string.event_data_credit, state.providerName)
         }
         binding.progressMap.isVisible = state.isLoading

@@ -29,7 +29,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Where the map is centred, which decides the heading on screen. */
-enum class MapCentre { DEVICE_LOCATION, HOME_TOWN, HOME_TOWN_OUTSIDE_UK, CHOSEN_AREA }
+enum class MapCentre {
+    DEVICE_LOCATION,
+
+    /** Location permission not given. */
+    HOME_TOWN,
+
+    /** Permission given, but the phone could not find its position in time. */
+    HOME_TOWN_NO_FIX,
+    HOME_TOWN_OUTSIDE_UK,
+    CHOSEN_AREA,
+}
 
 /** All events at one venue: one marker on the map. */
 data class VenueMarker(
@@ -97,6 +107,8 @@ class MapViewModel(
             val device = locationRepository.currentLocation()
             val homeTown = GeoPoint(homeCity.latitude, homeCity.longitude)
             when {
+                device == null && locationRepository.hasPermission() ->
+                    search(homeTown, MapCentre.HOME_TOWN_NO_FIX, homeCity)
                 device == null -> search(homeTown, MapCentre.HOME_TOWN, homeCity)
                 // Data Thistle only lists UK events, so searching abroad would always be empty.
                 !device.isInUk -> search(homeTown, MapCentre.HOME_TOWN_OUTSIDE_UK, homeCity)

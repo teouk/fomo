@@ -60,6 +60,7 @@
     <string name="map_status_near_area">Events in this area</string>
     <string name="map_status_near_city">Events near %1$s</string>
     <string name="map_location_off">Location is off, so the map starts at your home town.</string>
+    <string name="map_location_unavailable">Couldn\'t find your location just now, so the map starts at your home town.</string>
     <string name="map_location_outside_uk">Your location is outside the UK, where listings are available, so the map starts at your home town.</string>
     <string name="map_empty">No events found here. Zoom out or search another area.</string>
     <string name="action_search_area">Search this area</string>
