@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -23,6 +24,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil3.load
 import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.fallback
+import coil3.request.placeholder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.github.teouk.fomo.R
@@ -127,7 +131,12 @@ class EventDetailsActivity : AppCompatActivity() {
     }
 
     private fun showEvent(event: Event) {
-        binding.imageEvent.load(event.imageUrl) { crossfade(true) }
+        binding.imageEvent.load(event.imageUrl) {
+            crossfade(true)
+            placeholder(R.drawable.ic_image_placeholder)
+            error(R.drawable.ic_image_placeholder)
+            fallback(R.drawable.ic_image_placeholder)
+        }
         binding.textEventTitle.text = event.name
         binding.textEventDateTime.text = event.localDate?.let { date ->
             val day = EventFormatter.longDay(date)
@@ -140,7 +149,7 @@ class EventDetailsActivity : AppCompatActivity() {
         binding.textEventPrice.text = EventCardBinder.priceText(this, event.minPrice, event.currency)
 
         binding.buttonGetTickets.isVisible = event.ticketUrl != null
-        binding.buttonGetTickets.setOnClickListener { event.ticketUrl?.let { openUri(Uri.parse(it)) } }
+        binding.buttonGetTickets.setOnClickListener { event.ticketUrl?.let { openUri(it.toUri()) } }
 
         binding.textEventDescription.text = event.description
         updateDescription()
@@ -155,7 +164,7 @@ class EventDetailsActivity : AppCompatActivity() {
         binding.buttonDirections.isVisible = lat != null && lon != null
         binding.buttonDirections.setOnClickListener {
             // Hands over to Google Maps (or the browser if Maps is not installed).
-            openUri(Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lon"))
+            openUri("https://www.google.com/maps/dir/?api=1&destination=$lat,$lon".toUri())
         }
     }
 

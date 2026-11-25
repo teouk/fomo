@@ -1,7 +1,7 @@
 package io.github.teouk.fomo.data.ocr
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -31,7 +31,7 @@ class MlKitPosterReader(private val context: Context) : PosterReader {
 
     override suspend fun readLines(photoUri: String): List<String> {
         // Decoding a camera photo is slow, so it happens off the main thread.
-        val image = withContext(Dispatchers.Default) { InputImage.fromFilePath(context, Uri.parse(photoUri)) }
+        val image = withContext(Dispatchers.Default) { InputImage.fromFilePath(context, photoUri.toUri()) }
         val text = recognizer.process(image).await()
         // Blocks are paragraphs; their lines keep the poster's reading order.
         return text.textBlocks.flatMap { block -> block.lines.map { it.text } }

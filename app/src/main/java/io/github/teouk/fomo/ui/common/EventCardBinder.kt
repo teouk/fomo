@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import coil3.load
 import coil3.request.crossfade
 import coil3.request.error
+import coil3.request.fallback
 import coil3.request.placeholder
 import io.github.teouk.fomo.R
 
@@ -32,10 +33,12 @@ object EventCardBinder {
         dateTime.text = EventFormatter.dateTime(event.localDate, event.localTime) ?: context.getString(R.string.date_tbc)
         venue.text = venueText(context, item)
         price.text = priceText(context, event.minPrice, event.currency)
+        // Coil's fallback is used when the URL is null (the listing has no photo).
         image.load(event.imageUrl) {
             crossfade(true)
-            placeholder(R.drawable.ic_launcher_background)
-            error(R.drawable.ic_launcher_background)
+            placeholder(R.drawable.ic_image_placeholder)
+            error(R.drawable.ic_image_placeholder)
+            fallback(R.drawable.ic_image_placeholder)
         }
         mayClashLabel.isVisible = item.clash != null
         saveButton.setIconResource(if (item.isSaved) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border)

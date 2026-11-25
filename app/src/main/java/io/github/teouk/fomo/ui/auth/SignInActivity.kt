@@ -59,7 +59,11 @@ class SignInActivity : AppCompatActivity() {
         binding.buttonCreateAccount.isEnabled = !state.isLoading
         binding.inputEmail.error = if (state.emailInvalid) getString(R.string.error_email_invalid) else null
         binding.inputPassword.error = if (state.passwordInvalid) {
-            getString(R.string.error_password_short, CredentialsValidator.MIN_PASSWORD_LENGTH)
+            resources.getQuantityString(
+                R.plurals.error_password_short,
+                CredentialsValidator.MIN_PASSWORD_LENGTH,
+                CredentialsValidator.MIN_PASSWORD_LENGTH,
+            )
         } else {
             null
         }

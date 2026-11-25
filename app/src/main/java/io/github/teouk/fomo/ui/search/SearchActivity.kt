@@ -176,7 +176,12 @@ class SearchActivity : AppCompatActivity() {
         if (binding.chipOnlyFree.isChecked != filters.onlyWhenFree) binding.chipOnlyFree.isChecked = filters.onlyWhenFree
         val radius = filters.radiusMiles.toFloat()
         if (binding.sliderDistance.value != radius) binding.sliderDistance.value = radius
-        binding.textDistance.text = getString(R.string.search_distance, filters.radiusMiles, state.city.displayName)
+        binding.textDistance.text = resources.getQuantityString(
+            R.plurals.search_distance,
+            filters.radiusMiles,
+            filters.radiusMiles,
+            state.city.displayName,
+        )
 
         binding.progressSearch.isVisible = state.isLoading
         binding.textResultCount.isVisible = !state.isLoading && state.error == null

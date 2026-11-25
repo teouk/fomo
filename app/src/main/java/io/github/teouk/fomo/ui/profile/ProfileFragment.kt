@@ -96,7 +96,7 @@ class ProfileFragment : Fragment() {
     private fun reminderLabel(hours: Int): String = when (hours) {
         1 -> getString(R.string.reminder_one_hour)
         HOURS_IN_DAY -> getString(R.string.reminder_one_day)
-        else -> getString(R.string.reminder_hours, hours)
+        else -> resources.getQuantityString(R.plurals.reminder_hours, hours, hours)
     }
 
     private fun showNameDialog() {
