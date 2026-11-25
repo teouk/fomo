@@ -1,6 +1,6 @@
-package io.github.teouk.fomo.data.remote
+package io.github.teouk.fomo.data.remote.ticketmaster
 
-import io.github.teouk.fomo.data.remote.dto.EventSearchResponseDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.EventSearchResponseDto
 import io.github.teouk.fomo.model.Event
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals

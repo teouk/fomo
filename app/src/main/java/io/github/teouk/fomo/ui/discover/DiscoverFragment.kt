@@ -91,7 +91,14 @@ class DiscoverFragment : Fragment() {
     private fun render(state: DiscoverUiState) {
         binding.textLocation.text = getString(R.string.location_events_near, state.city.displayName)
         binding.progressDiscover.isVisible = state.isLoading
-        binding.textSampleNotice.isVisible = state.usesSampleData
+        // Shows who supplied the listings (Data Thistle's terms require a credit), or
+        // explains that these are sample events when no API token is configured.
+        binding.textSampleNotice.text = if (state.usesSampleData) {
+            getString(R.string.sample_data_notice)
+        } else {
+            getString(R.string.event_data_credit, state.providerName)
+        }
+        binding.textSampleNotice.isVisible = state.providerName.isNotEmpty()
 
         val message = when {
             state.error != null -> getString(state.error.messageRes())

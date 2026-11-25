@@ -1,4 +1,4 @@
-package io.github.teouk.fomo.data.remote.dto
+package io.github.teouk.fomo.data.remote.ticketmaster.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

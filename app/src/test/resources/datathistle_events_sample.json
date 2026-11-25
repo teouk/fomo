@@ -1,0 +1,77 @@
+[
+  {
+    "event_id": "4cbdf47a-a171-983c-e0e6-ed5600132469",
+    "list_id": null,
+    "status": "live",
+    "created_ts": "2026-10-10 18:45:00+01",
+    "modified_ts": "2026-10-10 19:45:00+01",
+    "name": "Jazz on the Bay",
+    "sort_name": "Jazz on the Bay",
+    "website": "https://www.example-venue.co.uk/jazz",
+    "tags": ["music", "jazz"],
+    "properties": [],
+    "links": [],
+    "description": [
+      { "type": "third-party", "description": "Live jazz on the waterfront with the Bay Big Band." }
+    ],
+    "images": [
+      { "url": "https://files.datathistle.com/images/small.jpg", "width": 300, "height": 200, "alt_text": "Band" },
+      { "url": "https://files.datathistle.com/images/large.jpg", "width": 620, "height": 414, "alt_text": "Band" }
+    ],
+    "schedules": [
+      {
+        "place_id": "d464b837-1cf5-d79d-5baf-dfb50001bd73",
+        "start_ts": "2026-11-13T19:30:00",
+        "end_ts": "2026-11-20T22:00:00+00:00",
+        "tags": ["music"],
+        "properties": [],
+        "links": [],
+        "performance_space": "Main hall",
+        "ticket_summary": "@todo",
+        "tickets": [],
+        "place": {
+          "place_id": "d464b837-1cf5-d79d-5baf-dfb50001bd73",
+          "name": "Swansea Arena",
+          "sort_name": "Swansea Arena",
+          "address": "Oystermouth Road",
+          "town": "Swansea",
+          "postal_code": "SA1 3BX",
+          "lat": 51.6144,
+          "lon": -3.9436
+        },
+        "performances": [
+          {
+            "ts": "2026-11-13T19:30:00+00:00",
+            "time_unknown": null,
+            "duration": null,
+            "properties": [],
+            "links": [ { "url": "https://www.datathistle.com/details/abc/book", "type": "booking" } ],
+            "tickets": [
+              { "type": "Standard", "currency": "GBP", "min_price": 25.0, "max_price": 35.0, "description": "" }
+            ]
+          },
+          {
+            "ts": "2026-11-20T19:30:00+00:00",
+            "links": [ { "url": "https://www.datathistle.com/details/def/book", "type": "booking" } ],
+            "tickets": [
+              { "type": "Concession", "currency": "GBP", "min_price": 18.5, "max_price": 18.5 }
+            ]
+          }
+        ]
+      }
+    ],
+    "_distance": 0.42
+  },
+  {
+    "event_id": "00000000-0000-0000-0000-000000000002",
+    "name": "Open Mic Night",
+    "tags": [],
+    "schedules": [
+      {
+        "start_ts": "2026-11-15T19:00:00",
+        "place": { "name": "Taliesin Arts Centre", "town": "Swansea" },
+        "performances": []
+      }
+    ]
+  }
+]

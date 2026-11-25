@@ -1,7 +1,7 @@
-package io.github.teouk.fomo.data.remote
+package io.github.teouk.fomo.data.remote.ticketmaster
 
-import io.github.teouk.fomo.data.remote.dto.EventDto
-import io.github.teouk.fomo.data.remote.dto.EventSearchResponseDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.EventDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.EventSearchResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.QueryMap

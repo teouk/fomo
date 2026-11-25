@@ -107,6 +107,7 @@ class EventDetailsActivity : AppCompatActivity() {
         )
 
         if (event != null) showEvent(event)
+        binding.textDataCredit.text = getString(R.string.event_data_credit, state.providerName)
         showWeather(state.weather)
     }
 

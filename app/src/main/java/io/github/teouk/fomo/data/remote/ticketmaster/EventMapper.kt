@@ -1,8 +1,8 @@
-package io.github.teouk.fomo.data.remote
+package io.github.teouk.fomo.data.remote.ticketmaster
 
-import io.github.teouk.fomo.data.remote.dto.EventDto
-import io.github.teouk.fomo.data.remote.dto.ImageDto
-import io.github.teouk.fomo.data.remote.dto.VenueDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.EventDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.ImageDto
+import io.github.teouk.fomo.data.remote.ticketmaster.dto.VenueDto
 import io.github.teouk.fomo.model.Event
 import io.github.teouk.fomo.model.Venue
 import java.time.Instant

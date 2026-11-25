@@ -14,6 +14,7 @@ val localProperties = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 val ticketmasterApiKey: String = localProperties.getProperty("TICKETMASTER_API_KEY", "")
+val dataThistleToken: String = localProperties.getProperty("DATATHISTLE_TOKEN", "")
 
 android {
     namespace = "io.github.teouk.fomo"
@@ -31,6 +32,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "TICKETMASTER_API_KEY", "\"$ticketmasterApiKey\"")
+        buildConfigField("String", "DATATHISTLE_TOKEN", "\"$dataThistleToken\"")
     }
 
     buildTypes {

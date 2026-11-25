@@ -11,7 +11,8 @@
 
     <string name="location_events_near">Events near %1$s</string>
     <string name="location_choose_title">Choose a location</string>
-    <string name="sample_data_notice">Showing sample Swansea events. Live Ticketmaster events appear once an API key is added.</string>
+    <string name="sample_data_notice">Showing sample Swansea events. Live events appear once an API token is added to local.properties.</string>
+    <string name="event_data_credit">Event listings from %1$s</string>
     <string name="discover_empty">No upcoming events near %1$s. Try another place or category.</string>
     <string name="action_retry">Try again</string>
 

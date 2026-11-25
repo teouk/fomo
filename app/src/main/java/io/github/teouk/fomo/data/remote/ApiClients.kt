@@ -6,6 +6,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import io.github.teouk.fomo.data.remote.datathistle.DataThistleService
+import io.github.teouk.fomo.data.remote.ticketmaster.TicketmasterService
 import io.github.teouk.fomo.data.remote.weather.OpenMeteoService
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -17,7 +19,7 @@ object ApiClients {
     /** Ticketmaster adds fields over time; unknown ones are skipped instead of crashing. */
     val json = Json { ignoreUnknownKeys = true }
 
-    fun createService(apiKey: String, logRequests: Boolean): TicketmasterService {
+    fun createTicketmasterService(apiKey: String, logRequests: Boolean): TicketmasterService {
         // Adds ?apikey=... to every request in one place, so no caller handles the key.
         val apiKeyInterceptor = Interceptor { chain ->
             val url = chain.request().url.newBuilder()
@@ -43,6 +45,26 @@ object ApiClients {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(TicketmasterService::class.java)
+    }
+
+    fun createDataThistleService(accessToken: String, logRequests: Boolean): DataThistleService {
+        // Data Thistle wants the token in a header, not in the URL. Keeping it out of
+        // URLs also keeps it out of server logs and browser histories.
+        val authInterceptor = Interceptor { chain ->
+            chain.proceed(chain.request().newBuilder().header("Authorization", "Bearer $accessToken").build())
+        }
+        val client = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .apply {
+                if (logRequests) addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+            }
+            .build()
+        return Retrofit.Builder()
+            .baseUrl(DataThistleService.BASE_URL)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(DataThistleService::class.java)
     }
 
     fun createOpenMeteoService(): OpenMeteoService =

@@ -44,6 +44,8 @@ data class DiscoverUiState(
     val nearYou: List<EventListItem> = emptyList(),
     val error: DataError? = null,
     val usesSampleData: Boolean = false,
+    /** Who supplied the events, credited on screen (e.g. "Data Thistle"). */
+    val providerName: String = "",
 ) {
     val isEmpty: Boolean get() = !isLoading && error == null && thisWeekend.isEmpty() && nearYou.isEmpty()
 }
@@ -89,6 +91,7 @@ class DiscoverViewModel(
                 nearYou = data.upcoming.map { it.toItem(data.city, statuses) },
                 error = data.error,
                 usesSampleData = usesSampleData,
+                providerName = eventRepository.providerName,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DiscoverUiState())
 
@@ -146,7 +149,11 @@ class DiscoverViewModel(
         val lon = venue?.longitude
         return EventListItem(
             event = this,
-            distanceMiles = if (lat != null && lon != null) Distance.miles(city.latitude, city.longitude, lat, lon) else null,
+            distanceMiles = if (lat != null && lon != null) {
+                Distance.miles(city.latitude, city.longitude, lat, lon)
+            } else {
+                distanceMiles
+            },
             isSaved = statuses[id]?.isSaved == true,
         )
     }

@@ -6,6 +6,7 @@ import io.github.teouk.fomo.MainDispatcherRule
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
 import io.github.teouk.fomo.data.repository.SettingsStore
+import io.github.teouk.fomo.data.remote.ticketmaster.TicketmasterDataSource
 import io.github.teouk.fomo.data.sample.SampleTicketmasterService
 import io.github.teouk.fomo.model.Category
 import io.github.teouk.fomo.model.City
@@ -46,7 +47,7 @@ class DiscoverViewModelTest {
 
     private fun viewModel() = DiscoverViewModel(
         eventRepository = EventRepository(
-            SampleTicketmasterService(clock),
+            TicketmasterDataSource(SampleTicketmasterService(clock)),
             hasApiKey = true,
             clock = clock,
             ioDispatcher = mainDispatcherRule.dispatcher,

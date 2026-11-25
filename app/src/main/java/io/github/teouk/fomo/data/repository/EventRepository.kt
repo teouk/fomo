@@ -1,8 +1,6 @@
 package io.github.teouk.fomo.data.repository
 
-import io.github.teouk.fomo.data.remote.EventQueryBuilder
-import io.github.teouk.fomo.data.remote.TicketmasterService
-import io.github.teouk.fomo.data.remote.toEvent
+import io.github.teouk.fomo.data.remote.EventDataSource
 import io.github.teouk.fomo.model.Event
 import io.github.teouk.fomo.model.EventFilter
 import kotlinx.coroutines.CancellationException
@@ -22,37 +20,37 @@ import java.time.Instant
  * The single place the rest of the app asks for events. ViewModels call this and never
  * touch Retrofit, so the data source can change without changing any screen.
  *
- * Recent results are kept in memory for [CACHE_TTL] to stay inside Ticketmaster's quota
+ * Recent results are kept in memory for [CACHE_TTL] to stay inside the API's quota
  * and to make going back to a screen instant.
  *
  * Its dependencies arrive through the constructor ("dependency injection"), which lets
- * the unit tests pass in a fake service and a fake clock.
+ * the unit tests pass in a fake data source and a fake clock.
  */
 class EventRepository(
-    private val service: TicketmasterService,
+    private val dataSource: EventDataSource,
     private val hasApiKey: Boolean,
     private val clock: Clock = Clock.systemUTC(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private class CacheEntry<T>(val value: T, val savedAt: Instant)
 
-    private val searchCache = mutableMapOf<Map<String, String>, CacheEntry<List<Event>>>()
+    /** Keyed by the filter itself: a data class, so two equal filters are the same key. */
+    private val searchCache = mutableMapOf<EventFilter, CacheEntry<List<Event>>>()
     private val eventCache = mutableMapOf<String, CacheEntry<Event>>()
 
     /** Guards the two maps, because several coroutines may load at the same time. */
     private val cacheMutex = Mutex()
 
     suspend fun searchEvents(filter: EventFilter, forceRefresh: Boolean = false): Outcome<List<Event>> {
-        val query = EventQueryBuilder.build(filter)
         if (!forceRefresh) {
-            cacheMutex.withLock { searchCache[query]?.takeIf { it.isFresh() } }
+            cacheMutex.withLock { searchCache[filter]?.takeIf { it.isFresh() } }
                 ?.let { return Outcome.Success(it.value) }
         }
         return load {
-            val events = service.searchEvents(query).embedded?.events.orEmpty().map { it.toEvent() }
+            val events = dataSource.search(filter)
             cacheMutex.withLock {
                 val now = clock.instant()
-                searchCache[query] = CacheEntry(events, now)
+                searchCache[filter] = CacheEntry(events, now)
                 // Search results already hold each event, so opening Details needs no request.
                 events.forEach { eventCache[it.id] = CacheEntry(it, now) }
             }
@@ -64,11 +62,14 @@ class EventRepository(
         cacheMutex.withLock { eventCache[eventId]?.takeIf { it.isFresh() } }
             ?.let { return Outcome.Success(it.value) }
         return load {
-            val event = service.getEvent(eventId).toEvent()
+            val event = dataSource.getEvent(eventId)
             cacheMutex.withLock { eventCache[eventId] = CacheEntry(event, clock.instant()) }
             event
         }
     }
+
+    /** The name to credit on screen, e.g. "Data Thistle". */
+    val providerName: String get() = dataSource.providerName
 
     private fun CacheEntry<*>.isFresh(): Boolean =
         Duration.between(savedAt, clock.instant()) < CACHE_TTL

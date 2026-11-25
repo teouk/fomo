@@ -36,6 +36,7 @@ data class EventDetailsUiState(
     val status: EventStatus = EventStatus(),
     val weather: WeatherForecast? = null,
     val error: DataError? = null,
+    val providerName: String = "",
 )
 
 /** One-off things the screen should do once, such as showing a Snackbar. */
@@ -59,7 +60,7 @@ class EventDetailsViewModel(
     /** The Activity's Intent extras arrive in SavedStateHandle automatically. */
     private val eventId: String = checkNotNull(savedStateHandle[EventDetailsActivity.EXTRA_EVENT_ID])
 
-    private val loaded = MutableStateFlow(EventDetailsUiState())
+    private val loaded = MutableStateFlow(EventDetailsUiState(providerName = eventRepository.providerName))
 
     val uiState: StateFlow<EventDetailsUiState> =
         combine(loaded, libraryRepository.statuses) { state, statuses ->

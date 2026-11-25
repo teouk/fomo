@@ -1,4 +1,4 @@
-package io.github.teouk.fomo.data.remote
+package io.github.teouk.fomo.data.remote.ticketmaster
 
 import io.github.teouk.fomo.model.Category
 import io.github.teouk.fomo.model.DateWindow

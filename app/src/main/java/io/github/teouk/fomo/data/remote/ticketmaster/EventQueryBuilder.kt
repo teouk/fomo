@@ -1,4 +1,4 @@
-package io.github.teouk.fomo.data.remote
+package io.github.teouk.fomo.data.remote.ticketmaster
 
 import io.github.teouk.fomo.model.EventFilter
 import io.github.teouk.fomo.util.GeoHash

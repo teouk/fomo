@@ -26,6 +26,11 @@ data class Event(
     val minPrice: Double?,
     val currency: String?,
     val venue: Venue?,
+    /**
+     * Distance from the searched location in miles, when the API reports it.
+     * Used when the venue has no coordinates to calculate it from.
+     */
+    val distanceMiles: Double? = null,
 )
 
 data class Venue(

@@ -1,9 +1,7 @@
 package io.github.teouk.fomo.data.repository
 
-import io.github.teouk.fomo.data.remote.TicketmasterService
-import io.github.teouk.fomo.data.remote.dto.EmbeddedEventsDto
-import io.github.teouk.fomo.data.remote.dto.EventDto
-import io.github.teouk.fomo.data.remote.dto.EventSearchResponseDto
+import io.github.teouk.fomo.data.remote.EventDataSource
+import io.github.teouk.fomo.model.Event
 import io.github.teouk.fomo.model.EventFilter
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -22,23 +20,24 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 class EventRepositoryTest {
-    /** A hand-written stand-in for Ticketmaster. No network, and it counts the calls. */
-    private class FakeTicketmasterService : TicketmasterService {
+    /** A hand-written stand-in for an events API. No network, and it counts the calls. */
+    private class FakeEventDataSource : EventDataSource {
+        override val providerName = "Fake"
         var searchCalls = 0
         var detailCalls = 0
         var failure: Exception? = null
-        var events = listOf(EventDto(id = "e1", name = "The Harbour Lights"))
+        var events = listOf(event("e1", "The Harbour Lights"))
 
-        override suspend fun searchEvents(query: Map<String, String>): EventSearchResponseDto {
+        override suspend fun search(filter: EventFilter): List<Event> {
             searchCalls++
             failure?.let { throw it }
-            return EventSearchResponseDto(embedded = EmbeddedEventsDto(events))
+            return events
         }
 
-        override suspend fun getEvent(eventId: String): EventDto {
+        override suspend fun getEvent(eventId: String): Event {
             detailCalls++
             failure?.let { throw it }
-            return EventDto(id = eventId, name = "Loaded by id")
+            return event(eventId, "Loaded by id")
         }
     }
 
@@ -49,7 +48,7 @@ class EventRepositoryTest {
         override fun withZone(zone: ZoneId): Clock = this
     }
 
-    private val service = FakeTicketmasterService()
+    private val service = FakeEventDataSource()
     private val clock = MutableClock(Instant.parse("2026-11-11T12:00:00Z"))
     private val scope = TestScope()
     private val swansea = EventFilter(latitude = 51.6214, longitude = -3.9436)
@@ -100,7 +99,7 @@ class EventRepositoryTest {
     }
 
     @Test
-    fun searchEvents_noEmbeddedSection_returnsEmptyList() = scope.runTest {
+    fun searchEvents_noResults_returnsEmptyList() = scope.runTest {
         service.events = emptyList()
         val outcome = repository().searchEvents(swansea)
         assertTrue((outcome as Outcome.Success).data.isEmpty())
@@ -157,5 +156,12 @@ class EventRepositoryTest {
     fun getEvent_http404_returnsNotFound() = scope.runTest {
         service.failure = httpError(404)
         assertEquals(Outcome.Failure(DataError.NOT_FOUND), repository().getEvent("gone"))
+    }
+
+    private companion object {
+        fun event(id: String, name: String) = Event(
+            id = id, name = name, localDate = null, localTime = null, startsAt = null, category = null,
+            description = null, imageUrl = null, ticketUrl = null, minPrice = null, currency = null, venue = null,
+        )
     }
 }
