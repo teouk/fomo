@@ -109,6 +109,13 @@
     <string name="date_pick">Dates</string>
     <string name="filter_only_free">Only when I\'m free</string>
     <string name="action_clear_all">Clear all</string>
+    <string name="search_distance">Within %1$d miles of %2$s</string>
+    <string name="search_error_title">Couldn\'t load events</string>
+    <string name="date_range_title">Choose dates</string>
+    <plurals name="search_result_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
     <string name="empty_results_title">No events match</string>
     <string name="empty_results_body">Try a wider distance or clear some filters.</string>
 

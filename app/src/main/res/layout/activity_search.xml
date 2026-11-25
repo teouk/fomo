@@ -257,6 +257,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:id="@+id/text_empty_title"
                 android:text="@string/empty_results_title"
                 android:textAppearance="?attr/textAppearanceTitleMedium" />
 
@@ -265,6 +266,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:gravity="center"
+                android:id="@+id/text_empty_body"
                 android:text="@string/empty_results_body"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
