@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.material.button.MaterialButton
+import androidx.core.view.isVisible
 import coil3.load
 import coil3.request.crossfade
 import coil3.request.error
@@ -23,6 +24,7 @@ object EventCardBinder {
         venue: TextView,
         price: TextView,
         saveButton: MaterialButton,
+        mayClashLabel: TextView,
     ) {
         val context = title.context
         val event = item.event
@@ -35,6 +37,7 @@ object EventCardBinder {
             placeholder(R.drawable.ic_launcher_background)
             error(R.drawable.ic_launcher_background)
         }
+        mayClashLabel.isVisible = item.clash != null
         saveButton.setIconResource(if (item.isSaved) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border)
         saveButton.contentDescription = context.getString(
             if (item.isSaved) R.string.action_unsave_event else R.string.action_save_event,

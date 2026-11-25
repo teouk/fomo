@@ -1,5 +1,6 @@
 package io.github.teouk.fomo.ui.profile
 
+import android.Manifest
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -7,12 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import io.github.teouk.fomo.FomoApplication
 import io.github.teouk.fomo.R
 import io.github.teouk.fomo.data.repository.PreferencesRepository
 import io.github.teouk.fomo.databinding.FragmentProfileBinding
@@ -26,6 +30,13 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ProfileViewModel by viewModels { ProfileViewModel.Factory }
+
+    /** Calendar access is asked for at the moment the user switches the clash check on. */
+    private val calendarPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            viewModel.setClashCheckEnabled(granted)
+            if (!granted) Snackbar.make(binding.root, R.string.clash_check_denied, Snackbar.LENGTH_LONG).show()
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +52,9 @@ class ProfileFragment : Fragment() {
         binding.layoutProfileName.setOnClickListener { showNameDialog() }
         binding.layoutHomeTown.setOnClickListener { showCityDialog() }
         binding.layoutReminderLead.setOnClickListener { showReminderDialog() }
+        binding.switchClashCheck.setOnClickListener {
+            if (binding.switchClashCheck.isChecked) turnOnClashCheck() else viewModel.setClashCheckEnabled(false)
+        }
         binding.buttonSignOut.setOnClickListener {
             viewModel.signOut()
             startActivity(SignInActivity.newIntent(requireContext()))
@@ -59,6 +73,24 @@ class ProfileFragment : Fragment() {
         binding.textProfileEmail.text = state.account?.let { getString(R.string.profile_signed_in_as, it.email) }
         binding.textHomeTown.text = state.homeCity.displayName
         binding.textReminderLead.text = reminderLabel(state.reminderLeadHours)
+        binding.switchClashCheck.isChecked = state.clashCheckEnabled
+    }
+
+    private fun turnOnClashCheck() {
+        val permission = Manifest.permission.READ_CALENDAR
+        val container = (requireActivity().application as FomoApplication).container
+        when {
+            container.calendarRepository.hasPermission() -> viewModel.setClashCheckEnabled(true)
+            shouldShowRequestPermissionRationale(permission) ->
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.calendar_rationale_title)
+                    .setMessage(R.string.calendar_rationale_body)
+                    .setPositiveButton(R.string.action_allow) { _, _ -> calendarPermission.launch(permission) }
+                    .setNegativeButton(R.string.action_not_now) { _, _ -> binding.switchClashCheck.isChecked = false }
+                    .setOnCancelListener { binding.switchClashCheck.isChecked = false }
+                    .show()
+            else -> calendarPermission.launch(permission)
+        }
     }
 
     private fun reminderLabel(hours: Int): String = when (hours) {

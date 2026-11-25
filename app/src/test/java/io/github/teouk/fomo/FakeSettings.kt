@@ -8,9 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class FakeSettings : SettingsStore {
     override val homeCity = MutableStateFlow(City.SWANSEA)
     override val reminderLeadHours = MutableStateFlow(2)
+    override val clashCheckEnabled = MutableStateFlow(false)
 
     override suspend fun setHomeCity(city: City) {
         homeCity.value = city
+    }
+
+    override suspend fun setClashCheckEnabled(enabled: Boolean) {
+        clashCheckEnabled.value = enabled
     }
 
     override suspend fun setReminderLeadHours(hours: Int) {

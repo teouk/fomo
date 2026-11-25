@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.teouk.fomo.FomoApplication
+import io.github.teouk.fomo.data.calendar.Clash
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.repository.DataError
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.EventStatus
@@ -35,6 +37,8 @@ data class EventDetailsUiState(
     val event: Event? = null,
     val status: EventStatus = EventStatus(),
     val weather: WeatherForecast? = null,
+    /** Calendar Clash Check: the overlapping calendar entry, if any. */
+    val clash: Clash? = null,
     val error: DataError? = null,
     val providerName: String = "",
 )
@@ -55,6 +59,7 @@ class EventDetailsViewModel(
     private val weatherRepository: WeatherRepository,
     private val reminderScheduler: ReminderScheduler,
     private val settings: SettingsStore,
+    private val clashRepository: ClashRepository,
 ) : ViewModel() {
 
     /** The Activity's Intent extras arrive in SavedStateHandle automatically. */
@@ -98,6 +103,8 @@ class EventDetailsViewModel(
 
     private suspend fun showEvent(event: Event) {
         loaded.update { it.copy(isLoading = false, event = event, error = null) }
+        val clash = clashRepository.clashesFor(listOf(event))[event.id]
+        loaded.update { it.copy(clash = clash) }
         val lat = event.venue?.latitude
         val lon = event.venue?.longitude
         val startsAt = event.startsAt
@@ -143,6 +150,7 @@ class EventDetailsViewModel(
                     weatherRepository = container.weatherRepository,
                     reminderScheduler = container.reminderScheduler,
                     settings = container.settings,
+                    clashRepository = container.clashRepository,
                 )
             }
         }

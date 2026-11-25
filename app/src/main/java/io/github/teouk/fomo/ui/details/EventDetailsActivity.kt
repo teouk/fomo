@@ -26,6 +26,7 @@ import coil3.request.crossfade
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.github.teouk.fomo.R
+import io.github.teouk.fomo.data.calendar.ClashChecker
 import io.github.teouk.fomo.databinding.ActivityEventDetailsBinding
 import io.github.teouk.fomo.model.Event
 import io.github.teouk.fomo.model.WeatherCondition
@@ -34,7 +35,6 @@ import io.github.teouk.fomo.ui.common.EventCardBinder
 import io.github.teouk.fomo.ui.common.EventFormatter
 import io.github.teouk.fomo.ui.common.messageRes
 import kotlinx.coroutines.launch
-import java.time.Duration
 import java.time.ZoneId
 
 /** Event Details screen. Opened from any event card, on any tab, with that event's ID. */
@@ -109,6 +109,21 @@ class EventDetailsActivity : AppCompatActivity() {
         if (event != null) showEvent(event)
         binding.textDataCredit.text = getString(R.string.event_data_credit, state.providerName)
         showWeather(state.weather)
+        showClash(state)
+    }
+
+    /** The amber "May clash" card (Calendar Clash Check), naming the calendar entry and its time. */
+    private fun showClash(state: EventDetailsUiState) {
+        val clash = state.clash
+        binding.cardBusy.isVisible = clash != null
+        if (clash == null) return
+        val zone = ZoneId.systemDefault()
+        binding.textBusyDetail.text = getString(
+            R.string.clash_detail,
+            clash.title,
+            EventFormatter.time(clash.begin.atZone(zone).toLocalTime()),
+            EventFormatter.time(clash.end.atZone(zone).toLocalTime()),
+        )
     }
 
     private fun showEvent(event: Event) {
@@ -212,7 +227,7 @@ class EventDetailsActivity : AppCompatActivity() {
      */
     private fun addToCalendar(event: Event) {
         val start = event.startsAt ?: return
-        val end = start.plus(Duration.ofHours(ASSUMED_EVENT_DURATION_HOURS))
+        val end = start.plus(ClashChecker.ASSUMED_EVENT_DURATION)
         val intent = Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, start.toEpochMilli())
             .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end.toEpochMilli())
@@ -234,9 +249,6 @@ class EventDetailsActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_EVENT_ID = "io.github.teouk.fomo.extra.EVENT_ID"
         private const val COLLAPSED_LINES = 4
-
-        /** Listings rarely give an end time, so calendar entries assume 3 hours. */
-        private const val ASSUMED_EVENT_DURATION_HOURS = 3L
 
         /**
          * Builds the Intent that opens the details of [eventId].

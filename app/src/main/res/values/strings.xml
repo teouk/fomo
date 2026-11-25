@@ -2,6 +2,12 @@
     <string name="app_name">FOMO</string>
     <string name="action_save_event">Save event</string>
     <string name="label_may_clash">May clash</string>
+    <string name="clash_detail">%1$s, %2$s–%3$s in your calendar</string>
+    <string name="label_clash_check">Check my calendar for clashes</string>
+    <string name="clash_check_summary">Shows \"May clash\" when an event overlaps something in your calendar. Your calendar never leaves this phone.</string>
+    <string name="calendar_rationale_title">Check your calendar?</string>
+    <string name="calendar_rationale_body">FOMO reads your calendar on this phone to warn you when an event overlaps a lecture, shift or plan. Nothing is uploaded or changed.</string>
+    <string name="clash_check_denied">Calendar access was not allowed, so clash checks stay off.</string>
 
     <!-- Home -->
     <string name="search_hint">Search events or artists</string>

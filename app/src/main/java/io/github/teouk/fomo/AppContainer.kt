@@ -1,6 +1,7 @@
 package io.github.teouk.fomo
 
 import android.content.Context
+import io.github.teouk.fomo.data.calendar.CalendarRepository
 import io.github.teouk.fomo.data.local.FomoDatabase
 import io.github.teouk.fomo.data.location.LocationRepository
 import io.github.teouk.fomo.data.ocr.MlKitPosterReader
@@ -9,6 +10,7 @@ import io.github.teouk.fomo.data.remote.EventDataSource
 import io.github.teouk.fomo.data.remote.datathistle.DataThistleDataSource
 import io.github.teouk.fomo.data.remote.ApiClients
 import io.github.teouk.fomo.data.repository.AuthRepository
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
 import io.github.teouk.fomo.data.repository.PreferencesRepository
@@ -46,5 +48,9 @@ class AppContainer(context: Context) {
     val locationRepository = LocationRepository(appContext)
 
     val posterReader: PosterReader = MlKitPosterReader(appContext)
+
+    val calendarRepository = CalendarRepository(appContext)
+
+    val clashRepository = ClashRepository(calendarRepository, settings)
 
 }

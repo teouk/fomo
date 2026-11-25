@@ -44,7 +44,7 @@ class PlansAdapter(
             }
             is PlansRow.EventRow -> with((holder as EventHolder).binding) {
                 EventCardBinder.bind(
-                    row.item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent,
+                    row.item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent, textEventBusy,
                 )
                 root.setOnClickListener { onEventClick(row.item.event) }
                 buttonSaveEvent.setOnClickListener { onSaveClick(row.item.event) }

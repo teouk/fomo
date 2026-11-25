@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.teouk.fomo.FomoApplication
+import io.github.teouk.fomo.data.calendar.Clash
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.ocr.PosterLineCleaner
 import io.github.teouk.fomo.data.ocr.PosterReader
 import io.github.teouk.fomo.data.repository.DataError
@@ -50,6 +52,8 @@ data class SearchFilters(
     val customStart: LocalDate? = null,
     val customEnd: LocalDate? = null,
     val radiusMiles: Int = DEFAULT_RADIUS_MILES,
+    /** Calendar Clash Check: hide events that overlap the user's calendar. */
+    val onlyWhenFree: Boolean = false,
 ) {
     val isDefault: Boolean get() = this == SearchFilters()
 
@@ -78,6 +82,8 @@ data class SearchUiState(
     val isLoading: Boolean = true,
     val results: List<EventListItem> = emptyList(),
     val error: DataError? = null,
+    /** Show the "Only when I'm free" chip; true when the clash check is switched on. */
+    val clashCheckEnabled: Boolean = false,
 ) {
     val isEmpty: Boolean get() = !isLoading && error == null && results.isEmpty()
 }
@@ -94,6 +100,7 @@ class SearchViewModel(
     private val eventRepository: EventRepository,
     private val libraryRepository: LibraryRepository,
     private val settings: SettingsStore,
+    private val clashRepository: ClashRepository,
     private val savedStateHandle: SavedStateHandle,
     private val posterReader: PosterReader,
     private val clock: Clock = Clock.systemUTC(),
@@ -107,19 +114,24 @@ class SearchViewModel(
         val city: City = City.DEFAULT,
         val isLoading: Boolean = true,
         val events: List<Event> = emptyList(),
+        val clashes: Map<String, Clash> = emptyMap(),
         val error: DataError? = null,
     )
 
     private val loaded = MutableStateFlow(Loaded())
+    private val clashCheckEnabled = MutableStateFlow(false)
 
     val uiState: StateFlow<SearchUiState> =
-        combine(filters, loaded, libraryRepository.statuses, poster) { filters, data, statuses, poster ->
+        combine(filters, loaded, libraryRepository.statuses, poster, clashCheckEnabled) { filters, data, statuses, poster, clashOn ->
             SearchUiState(
                 filters = filters,
                 poster = poster,
                 city = data.city,
                 isLoading = data.isLoading,
-                results = data.events.map { event ->
+                clashCheckEnabled = clashOn,
+                results = data.events
+                    .filterNot { filters.onlyWhenFree && clashOn && data.clashes.containsKey(it.id) }
+                    .map { event ->
                     val lat = event.venue?.latitude
                     val lon = event.venue?.longitude
                     EventListItem(
@@ -130,6 +142,7 @@ class SearchViewModel(
                             event.distanceMiles
                         },
                         isSaved = statuses[event.id]?.isSaved == true,
+                        clash = data.clashes[event.id],
                     )
                 },
                 error = data.error,
@@ -138,7 +151,10 @@ class SearchViewModel(
 
     init {
         viewModelScope.launch {
-            combine(filters, settings.homeCity, refreshRequests) { filters, city, _ -> filters to city }
+            combine(filters, settings.homeCity, refreshRequests, settings.clashCheckEnabled) { filters, city, _, clashOn ->
+                clashCheckEnabled.value = clashOn
+                filters to city
+            }
                 // Wait until the user pauses: typing "jazz" sends one request, not four.
                 // This keeps the app inside Data Thistle's monthly request quota.
                 .debounce(SEARCH_DEBOUNCE_MS)
@@ -157,6 +173,8 @@ class SearchViewModel(
     fun setCustomRange(start: LocalDate, end: LocalDate) = updateFilters {
         it.copy(datePreset = DatePreset.CUSTOM, customStart = start, customEnd = end)
     }
+
+    fun setOnlyWhenFree(onlyWhenFree: Boolean) = updateFilters { it.copy(onlyWhenFree = onlyWhenFree) }
 
     fun setRadius(miles: Int) = updateFilters {
         it.copy(radiusMiles = miles.coerceIn(EventFilter.MIN_RADIUS_MILES, EventFilter.MAX_RADIUS_MILES))
@@ -213,7 +231,12 @@ class SearchViewModel(
             dateWindow = dateWindowFor(filters, ZonedDateTime.now(clock).withZoneSameInstant(UK_TIME_ZONE)),
         )
         loaded.value = when (val outcome = eventRepository.searchEvents(filter)) {
-            is Outcome.Success -> Loaded(city, isLoading = false, events = outcome.data)
+            is Outcome.Success -> Loaded(
+                city,
+                isLoading = false,
+                events = outcome.data,
+                clashes = clashRepository.clashesFor(outcome.data),
+            )
             is Outcome.Failure -> Loaded(city, isLoading = false, error = outcome.error)
         }
     }
@@ -231,6 +254,7 @@ class SearchViewModel(
         savedStateHandle[KEY_CUSTOM_START] = value.customStart?.toEpochDay()
         savedStateHandle[KEY_CUSTOM_END] = value.customEnd?.toEpochDay()
         savedStateHandle[KEY_RADIUS] = value.radiusMiles
+        savedStateHandle[KEY_ONLY_FREE] = value.onlyWhenFree
     }
 
     private fun restoreFilters(): SearchFilters = SearchFilters(
@@ -242,6 +266,7 @@ class SearchViewModel(
         customStart = savedStateHandle.get<Long>(KEY_CUSTOM_START)?.let(LocalDate::ofEpochDay),
         customEnd = savedStateHandle.get<Long>(KEY_CUSTOM_END)?.let(LocalDate::ofEpochDay),
         radiusMiles = savedStateHandle[KEY_RADIUS] ?: SearchFilters.DEFAULT_RADIUS_MILES,
+        onlyWhenFree = savedStateHandle[KEY_ONLY_FREE] ?: false,
     )
 
     companion object {
@@ -256,6 +281,7 @@ class SearchViewModel(
         private const val KEY_CUSTOM_END = "custom_end"
         private const val KEY_RADIUS = "radius"
         private const val KEY_PENDING_PHOTO = "pending_photo"
+        private const val KEY_ONLY_FREE = "only_free"
 
         /** The "When" choice as a time window, or null for "any date". Pure, so it is unit-tested. */
         fun dateWindowFor(filters: SearchFilters, now: ZonedDateTime): DateWindow? = when (filters.datePreset) {
@@ -277,6 +303,7 @@ class SearchViewModel(
                     eventRepository = container.eventRepository,
                     libraryRepository = container.libraryRepository,
                     settings = container.settings,
+                    clashRepository = container.clashRepository,
                     savedStateHandle = createSavedStateHandle(),
                     posterReader = container.posterReader,
                 )

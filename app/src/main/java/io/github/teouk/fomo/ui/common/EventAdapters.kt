@@ -34,7 +34,7 @@ class EventRowAdapter(
         val item = getItem(position)
         with(holder.binding) {
             EventCardBinder.bind(
-                item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent,
+                item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent, textEventBusy,
             )
             root.setOnClickListener { onEventClick(item.event) }
             buttonSaveEvent.setOnClickListener { onSaveClick(item.event) }
@@ -57,7 +57,7 @@ class FeaturedEventAdapter(
         val item = getItem(position)
         with(holder.binding) {
             EventCardBinder.bind(
-                item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent,
+                item, imageEvent, textEventTitle, textEventDateTime, textEventVenue, textEventPrice, buttonSaveEvent, textEventBusy,
             )
             root.setOnClickListener { onEventClick(item.event) }
             buttonSaveEvent.setOnClickListener { onSaveClick(item.event) }

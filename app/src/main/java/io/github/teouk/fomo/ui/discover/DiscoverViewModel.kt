@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.teouk.fomo.FomoApplication
+import io.github.teouk.fomo.data.calendar.Clash
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.repository.DataError
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.EventStatus
@@ -60,6 +62,7 @@ class DiscoverViewModel(
     private val eventRepository: EventRepository,
     private val libraryRepository: LibraryRepository,
     private val settings: SettingsStore,
+    private val clashRepository: ClashRepository,
     private val savedStateHandle: SavedStateHandle,
     private val clock: Clock = Clock.systemUTC(),
 ) : ViewModel() {
@@ -74,6 +77,8 @@ class DiscoverViewModel(
         val isLoading: Boolean = true,
         val weekend: List<Event> = emptyList(),
         val upcoming: List<Event> = emptyList(),
+        val weekendClashes: Map<String, Clash> = emptyMap(),
+        val upcomingClashes: Map<String, Clash> = emptyMap(),
         val error: DataError? = null,
     )
 
@@ -85,8 +90,8 @@ class DiscoverViewModel(
                 city = data.city,
                 category = category,
                 isLoading = data.isLoading,
-                thisWeekend = data.weekend.map { it.toItem(data.city, statuses) },
-                nearYou = data.upcoming.map { it.toItem(data.city, statuses) },
+                thisWeekend = data.weekend.map { it.toItem(data.city, statuses, data.weekendClashes) },
+                nearYou = data.upcoming.map { it.toItem(data.city, statuses, data.upcomingClashes) },
                 error = data.error,
                 providerName = eventRepository.providerName,
             )
@@ -96,7 +101,10 @@ class DiscoverViewModel(
         viewModelScope.launch {
             // collectLatest cancels a load that is still running when the user picks
             // another chip, so an old, slower response can never overwrite a newer one.
-            combine(settings.homeCity, selectedCategory, refreshRequests) { city, category, _ -> city to category }
+            // The clash setting is included so switching it on in Profile updates the labels.
+            combine(settings.homeCity, selectedCategory, refreshRequests, settings.clashCheckEnabled) { city, category, _, _ ->
+                city to category
+            }
                 .collectLatest { (city, category) -> load(city, category) }
         }
     }
@@ -132,16 +140,25 @@ class DiscoverViewModel(
         loaded.value = when {
             upcoming is Outcome.Failure -> Loaded(city, isLoading = false, error = upcoming.error)
             weekend is Outcome.Failure -> Loaded(city, isLoading = false, error = weekend.error)
-            else -> Loaded(
-                city = city,
-                isLoading = false,
-                weekend = (weekend as Outcome.Success).data,
-                upcoming = (upcoming as Outcome.Success).data,
-            )
+            else -> {
+                val weekendEvents = (weekend as Outcome.Success).data
+                val upcomingEvents = (upcoming as Outcome.Success).data
+                Loaded(
+                    city = city,
+                    isLoading = false,
+                    weekend = weekendEvents,
+                    upcoming = upcomingEvents,
+                    // Checked per list, not merged: the same event can appear in both with
+                    // different times (its Saturday showing for "This weekend", tonight's for
+                    // "Near you"), so one answer per event ID would be wrong for one of them.
+                    weekendClashes = clashRepository.clashesFor(weekendEvents),
+                    upcomingClashes = clashRepository.clashesFor(upcomingEvents),
+                )
+            }
         }
     }
 
-    private fun Event.toItem(city: City, statuses: Map<String, EventStatus>): EventListItem {
+    private fun Event.toItem(city: City, statuses: Map<String, EventStatus>, clashes: Map<String, Clash>): EventListItem {
         val lat = venue?.latitude
         val lon = venue?.longitude
         return EventListItem(
@@ -152,6 +169,7 @@ class DiscoverViewModel(
                 distanceMiles
             },
             isSaved = statuses[id]?.isSaved == true,
+            clash = clashes[id],
         )
     }
 
@@ -168,6 +186,7 @@ class DiscoverViewModel(
                     eventRepository = container.eventRepository,
                     libraryRepository = container.libraryRepository,
                     settings = container.settings,
+                    clashRepository = container.clashRepository,
                     savedStateHandle = createSavedStateHandle(),
                 )
             }

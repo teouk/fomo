@@ -6,6 +6,8 @@ import io.github.teouk.fomo.FakeEventDataSource.Companion.event
 import io.github.teouk.fomo.FakeSavedEventDao
 import io.github.teouk.fomo.FakeSettings
 import io.github.teouk.fomo.MainDispatcherRule
+import io.github.teouk.fomo.FakeCalendarSource
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
 import io.github.teouk.fomo.model.Category
@@ -39,12 +41,14 @@ class DiscoverViewModelTest {
         ),
     )
     private val settings = FakeSettings()
+    private val calendar = FakeCalendarSource()
     private val library = LibraryRepository(FakeSavedEventDao())
 
     private fun viewModel() = DiscoverViewModel(
         eventRepository = EventRepository(dataSource, hasApiKey = true, clock = clock, ioDispatcher = mainDispatcherRule.dispatcher),
         libraryRepository = library,
         settings = settings,
+        clashRepository = ClashRepository(calendar, settings),
         savedStateHandle = SavedStateHandle(),
         clock = clock,
     )
@@ -84,6 +88,74 @@ class DiscoverViewModelTest {
         assertFalse(first.isSaved)
         viewModel.toggleSave(first.event)
         assertTrue(viewModel.uiState.first { it.nearYou.first().isSaved }.nearYou.first().isSaved)
+    }
+
+    @Test
+    fun clashCheckOn_lectureOverlappingGig_marksMayClash() = runTest {
+        calendar.entries = listOf(
+            io.github.teouk.fomo.data.calendar.CalendarEntry(
+                "CSC306 Lecture",
+                Instant.parse("2026-11-11T18:00:00Z"),
+                Instant.parse("2026-11-11T20:00:00Z"),
+            ),
+        )
+        settings.clashCheckEnabled.value = true
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val items = viewModel.uiState.first { !it.isLoading }.nearYou
+        assertEquals("CSC306 Lecture", items.first { it.event.id == "jazz" }.clash?.title)
+        assertEquals(null, items.first { it.event.id == "comedy" }.clash)
+    }
+
+    @Test
+    fun clashCheck_sameEventAtDifferentTimesInEachList_isCheckedPerShowing() = runTest {
+        // Like the live data: the weekend search returns the Saturday showing, the
+        // upcoming search returns tonight's showing, under the same event ID.
+        val tonight = event("play", "Silent Night", "2026-11-11T19:30:00Z", arena)
+        val saturday = tonight.copy(
+            localDate = java.time.LocalDate.of(2026, 11, 14),
+            startsAt = Instant.parse("2026-11-14T14:00:00Z"),
+        )
+        val source = object : io.github.teouk.fomo.data.remote.EventDataSource {
+            override val providerName = "Fake"
+            override suspend fun search(filter: io.github.teouk.fomo.model.EventFilter) =
+                if (filter.dateWindow != null) listOf(saturday) else listOf(tonight)
+            override suspend fun getEvent(eventId: String) = tonight
+        }
+        calendar.entries = listOf(
+            io.github.teouk.fomo.data.calendar.CalendarEntry(
+                "CSC306 Lecture",
+                Instant.parse("2026-11-11T19:00:00Z"),
+                Instant.parse("2026-11-11T21:00:00Z"),
+            ),
+        )
+        settings.clashCheckEnabled.value = true
+        val viewModel = DiscoverViewModel(
+            eventRepository = EventRepository(source, hasApiKey = true, clock = clock, ioDispatcher = mainDispatcherRule.dispatcher),
+            libraryRepository = library,
+            settings = settings,
+            clashRepository = ClashRepository(calendar, settings),
+            savedStateHandle = SavedStateHandle(),
+            clock = clock,
+        )
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val state = viewModel.uiState.first { !it.isLoading }
+        assertEquals("CSC306 Lecture", state.nearYou.single().clash?.title)
+        assertEquals(null, state.thisWeekend.single().clash)
+    }
+
+    @Test
+    fun clashCheckOff_noLabelsEvenWithCalendarEntries() = runTest {
+        calendar.entries = listOf(
+            io.github.teouk.fomo.data.calendar.CalendarEntry(
+                "CSC306 Lecture",
+                Instant.parse("2026-11-11T18:00:00Z"),
+                Instant.parse("2026-11-11T20:00:00Z"),
+            ),
+        )
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        assertTrue(viewModel.uiState.first { !it.isLoading }.nearYou.all { it.clash == null })
     }
 
     @Test

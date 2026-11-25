@@ -3,6 +3,7 @@ package io.github.teouk.fomo.data.repository
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -18,9 +19,14 @@ interface SettingsStore {
     val homeCity: Flow<City>
     val reminderLeadHours: Flow<Int>
 
+    /** Calendar Clash Check switched on in Profile (off until the user chooses it). */
+    val clashCheckEnabled: Flow<Boolean>
+
     suspend fun setHomeCity(city: City)
 
     suspend fun setReminderLeadHours(hours: Int)
+
+    suspend fun setClashCheckEnabled(enabled: Boolean)
 }
 
 /**
@@ -36,6 +42,14 @@ class PreferencesRepository(private val context: Context) : SettingsStore {
         prefs[REMINDER_LEAD_HOURS] ?: DEFAULT_REMINDER_LEAD_HOURS
     }
 
+    override val clashCheckEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[CLASH_CHECK_ENABLED] ?: false
+    }
+
+    override suspend fun setClashCheckEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[CLASH_CHECK_ENABLED] = enabled }
+    }
+
     override suspend fun setHomeCity(city: City) {
         context.dataStore.edit { it[HOME_CITY] = city.name }
     }
@@ -49,5 +63,6 @@ class PreferencesRepository(private val context: Context) : SettingsStore {
         val REMINDER_LEAD_OPTIONS = listOf(1, 2, 6, 24)
         private val HOME_CITY = stringPreferencesKey("home_city")
         private val REMINDER_LEAD_HOURS = intPreferencesKey("reminder_lead_hours")
+        private val CLASH_CHECK_ENABLED = booleanPreferencesKey("clash_check_enabled")
     }
 }

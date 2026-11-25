@@ -105,8 +105,6 @@ class SearchActivity : AppCompatActivity() {
             item.itemId == R.id.action_scan_poster
         }
         binding.recyclerResults.adapter = adapter
-        // "Only when I'm free" belongs to the Calendar Clash Check bonus feature.
-        binding.chipOnlyFree.isVisible = false
 
         restoreKeyword()
         setUpListeners()
@@ -149,6 +147,7 @@ class SearchActivity : AppCompatActivity() {
         }
         // "Dates" always opens the picker, even when it is already selected.
         binding.buttonDatePick.setOnClickListener { showDateRangePicker() }
+        binding.chipOnlyFree.setOnCheckedChangeListener { _, checked -> viewModel.setOnlyWhenFree(checked) }
         binding.sliderDistance.addOnChangeListener { _, value, fromUser ->
             if (fromUser) viewModel.setRadius(value.toInt())
         }
@@ -172,6 +171,9 @@ class SearchActivity : AppCompatActivity() {
         } else if (binding.toggleGroupDates.checkedButtonId != dateButtonId) {
             binding.toggleGroupDates.check(dateButtonId)
         }
+        // "Only when I'm free" is part of Calendar Clash Check, so it only shows when that is on.
+        binding.chipOnlyFree.isVisible = state.clashCheckEnabled
+        if (binding.chipOnlyFree.isChecked != filters.onlyWhenFree) binding.chipOnlyFree.isChecked = filters.onlyWhenFree
         val radius = filters.radiusMiles.toFloat()
         if (binding.sliderDistance.value != radius) binding.sliderDistance.value = radius
         binding.textDistance.text = getString(R.string.search_distance, filters.radiusMiles, state.city.displayName)

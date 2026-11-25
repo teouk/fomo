@@ -6,6 +6,8 @@ import io.github.teouk.fomo.FakeEventDataSource.Companion.event
 import io.github.teouk.fomo.FakeSavedEventDao
 import io.github.teouk.fomo.FakeSettings
 import io.github.teouk.fomo.MainDispatcherRule
+import io.github.teouk.fomo.FakeCalendarSource
+import io.github.teouk.fomo.data.repository.ClashRepository
 import io.github.teouk.fomo.data.repository.EventRepository
 import io.github.teouk.fomo.data.repository.LibraryRepository
 import io.github.teouk.fomo.model.Category
@@ -42,10 +44,14 @@ class SearchViewModelTest {
         ),
     )
 
+    private val settings = FakeSettings()
+    private val calendar = FakeCalendarSource()
+
     private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = SearchViewModel(
         eventRepository = EventRepository(dataSource, hasApiKey = true, clock = clock, ioDispatcher = mainDispatcherRule.dispatcher),
         libraryRepository = LibraryRepository(FakeSavedEventDao()),
-        settings = FakeSettings(),
+        settings = settings,
+        clashRepository = ClashRepository(calendar, settings),
         savedStateHandle = handle,
         posterReader = posterReader,
         clock = clock,
@@ -149,6 +155,25 @@ class SearchViewModelTest {
         viewModel.readPoster("content://poster")
         advanceUntilIdle()
         assertEquals(PosterState.Failed, viewModel.uiState.value.poster)
+    }
+
+    @Test
+    fun onlyWhenFree_hidesEventsThatClash() = runTest(mainDispatcherRule.dispatcher) {
+        settings.clashCheckEnabled.value = true
+        calendar.entries = listOf(
+            io.github.teouk.fomo.data.calendar.CalendarEntry(
+                "Shift",
+                Instant.parse("2026-11-14T19:00:00Z"),
+                Instant.parse("2026-11-14T23:00:00Z"),
+            ),
+        )
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(3, viewModel.uiState.value.results.size)
+        viewModel.setOnlyWhenFree(true)
+        advanceUntilIdle()
+        assertEquals(setOf("jazz", "film"), viewModel.uiState.value.results.map { it.event.id }.toSet())
     }
 
     @Test

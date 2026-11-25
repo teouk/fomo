@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.teouk.fomo.FomoApplication
 import io.github.teouk.fomo.data.repository.Account
+import io.github.teouk.fomo.data.calendar.CalendarSource
 import io.github.teouk.fomo.data.repository.AuthRepository
 import io.github.teouk.fomo.data.repository.PreferencesRepository
 import io.github.teouk.fomo.data.repository.SettingsStore
@@ -21,15 +22,23 @@ data class ProfileUiState(
     val account: Account? = null,
     val homeCity: City = City.DEFAULT,
     val reminderLeadHours: Int = PreferencesRepository.DEFAULT_REMINDER_LEAD_HOURS,
+    val clashCheckEnabled: Boolean = false,
 )
 
 class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val settings: SettingsStore,
+    private val calendar: CalendarSource,
 ) : ViewModel() {
     val uiState: StateFlow<ProfileUiState> =
-        combine(authRepository.account, settings.homeCity, settings.reminderLeadHours) { account, city, hours ->
-            ProfileUiState(account, city, hours)
+        combine(
+            authRepository.account,
+            settings.homeCity,
+            settings.reminderLeadHours,
+            settings.clashCheckEnabled,
+        ) { account, city, hours, clashOn ->
+            // Shown as on only if the permission is still granted (it can be revoked in Settings).
+            ProfileUiState(account, city, hours, clashOn && calendar.hasPermission())
         }.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
@@ -48,6 +57,10 @@ class ProfileViewModel(
         viewModelScope.launch { settings.setReminderLeadHours(hours) }
     }
 
+    fun setClashCheckEnabled(enabled: Boolean) {
+        viewModelScope.launch { settings.setClashCheckEnabled(enabled) }
+    }
+
     fun signOut() = authRepository.signOut()
 
     companion object {
@@ -56,7 +69,7 @@ class ProfileViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as FomoApplication).container
-                ProfileViewModel(container.authRepository, container.settings)
+                ProfileViewModel(container.authRepository, container.settings, container.calendarRepository)
             }
         }
     }
