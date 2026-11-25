@@ -18,7 +18,7 @@ enum class DataError {
     /** No connection, or the request timed out. */
     OFFLINE,
 
-    /** No Ticketmaster key in local.properties, or the key was rejected. */
+    /** No Data Thistle token in local.properties, or the token was rejected. */
     INVALID_API_KEY,
 
     /** The daily or per-second quota was used up. */
@@ -27,6 +27,6 @@ enum class DataError {
     /** The event no longer exists. */
     NOT_FOUND,
 
-    /** Ticketmaster had a problem, or sent something we could not read. */
+    /** The API had a problem, or sent something we could not read. */
     SERVER,
 }

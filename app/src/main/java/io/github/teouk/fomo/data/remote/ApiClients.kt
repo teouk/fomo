@@ -1,77 +1,55 @@
 package io.github.teouk.fomo.data.remote
 
+import io.github.teouk.fomo.data.remote.datathistle.DataThistleService
+import io.github.teouk.fomo.data.remote.weather.OpenMeteoService
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import io.github.teouk.fomo.data.remote.datathistle.DataThistleService
-import io.github.teouk.fomo.data.remote.ticketmaster.TicketmasterService
-import io.github.teouk.fomo.data.remote.weather.OpenMeteoService
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-/** Builds the Retrofit clients. Created once, in AppContainer. */
+/** Builds the Retrofit clients for the app's two external APIs. Created once, in AppContainer. */
 object ApiClients {
-    private const val BASE_URL = "https://app.ticketmaster.com/"
-    private const val API_KEY_PARAMETER = "apikey"
-
-    /** Ticketmaster adds fields over time; unknown ones are skipped instead of crashing. */
+    /** APIs add fields over time; unknown ones are skipped instead of crashing the parse. */
     val json = Json { ignoreUnknownKeys = true }
 
-    fun createTicketmasterService(apiKey: String, logRequests: Boolean): TicketmasterService {
-        // Adds ?apikey=... to every request in one place, so no caller handles the key.
-        val apiKeyInterceptor = Interceptor { chain ->
-            val url = chain.request().url.newBuilder()
-                .addQueryParameter(API_KEY_PARAMETER, apiKey)
-                .build()
-            chain.proceed(chain.request().newBuilder().url(url).build())
-        }
+    private val jsonConverter = json.asConverterFactory("application/json".toMediaType())
 
-        val client = OkHttpClient.Builder()
-            .addInterceptor(apiKeyInterceptor)
-            .apply {
-                // Request logs are for development only. They are off in release builds
-                // because they would print the API key into Logcat.
-                if (logRequests) {
-                    addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
-                }
-            }
-            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .build()
-            .create(TicketmasterService::class.java)
-    }
-
+    /**
+     * @param accessToken the Data Thistle token from local.properties (via BuildConfig).
+     * @param logRequests log each request in Logcat; only for debug builds.
+     */
     fun createDataThistleService(accessToken: String, logRequests: Boolean): DataThistleService {
-        // Data Thistle wants the token in a header, not in the URL. Keeping it out of
-        // URLs also keeps it out of server logs and browser histories.
+        // Data Thistle wants the token in a header, not in the URL. Adding it in one
+        // interceptor means no other code ever handles the token, and keeping it out of
+        // URLs keeps it out of server logs.
         val authInterceptor = Interceptor { chain ->
             chain.proceed(chain.request().newBuilder().header("Authorization", "Bearer $accessToken").build())
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .apply {
+                // BASIC logs the method, URL and status code, not the headers, so the
+                // token never appears in Logcat.
                 if (logRequests) addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
             }
             .build()
         return Retrofit.Builder()
             .baseUrl(DataThistleService.BASE_URL)
             .client(client)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(jsonConverter)
             .build()
             .create(DataThistleService::class.java)
     }
 
+    /** Open-Meteo needs no key, so a plain client is enough. */
     fun createOpenMeteoService(): OpenMeteoService =
         Retrofit.Builder()
             .baseUrl(OpenMeteoService.BASE_URL)
             .client(OkHttpClient())
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(jsonConverter)
             .build()
             .create(OpenMeteoService::class.java)
 }

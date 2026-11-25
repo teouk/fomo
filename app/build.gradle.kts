@@ -8,12 +8,11 @@ plugins {
 }
 
 // Secrets live in local.properties, which git ignores. If the file or the key is missing
-// (for example on a fresh clone), the app still builds and shows an error state instead.
+// (for example on a fresh clone), the app still builds and shows a clear error instead.
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val ticketmasterApiKey: String = localProperties.getProperty("TICKETMASTER_API_KEY", "")
 val dataThistleToken: String = localProperties.getProperty("DATATHISTLE_TOKEN", "")
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
 
@@ -32,7 +31,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "TICKETMASTER_API_KEY", "\"$ticketmasterApiKey\"")
         buildConfigField("String", "DATATHISTLE_TOKEN", "\"$dataThistleToken\"")
         // The Maps SDK reads its key from the manifest; this fills ${MAPS_API_KEY} there.
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey

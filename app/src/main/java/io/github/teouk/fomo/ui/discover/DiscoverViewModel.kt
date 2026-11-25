@@ -43,7 +43,6 @@ data class DiscoverUiState(
     val thisWeekend: List<EventListItem> = emptyList(),
     val nearYou: List<EventListItem> = emptyList(),
     val error: DataError? = null,
-    val usesSampleData: Boolean = false,
     /** Who supplied the events, credited on screen (e.g. "Data Thistle"). */
     val providerName: String = "",
 ) {
@@ -62,7 +61,6 @@ class DiscoverViewModel(
     private val libraryRepository: LibraryRepository,
     private val settings: SettingsStore,
     private val savedStateHandle: SavedStateHandle,
-    private val usesSampleData: Boolean,
     private val clock: Clock = Clock.systemUTC(),
 ) : ViewModel() {
 
@@ -90,7 +88,6 @@ class DiscoverViewModel(
                 thisWeekend = data.weekend.map { it.toItem(data.city, statuses) },
                 nearYou = data.upcoming.map { it.toItem(data.city, statuses) },
                 error = data.error,
-                usesSampleData = usesSampleData,
                 providerName = eventRepository.providerName,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DiscoverUiState())
@@ -172,7 +169,6 @@ class DiscoverViewModel(
                     libraryRepository = container.libraryRepository,
                     settings = container.settings,
                     savedStateHandle = createSavedStateHandle(),
-                    usesSampleData = container.usesSampleData,
                 )
             }
         }

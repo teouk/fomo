@@ -128,16 +128,14 @@
                 android:visibility="gone" />
 
             <TextView
-                android:id="@+id/text_sample_notice"
+                android:id="@+id/text_data_credit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
-                android:text="@string/sample_data_notice"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                tools:text="Event listings from Data Thistle" />
 
             <LinearLayout
                 android:id="@+id/layout_discover_message"

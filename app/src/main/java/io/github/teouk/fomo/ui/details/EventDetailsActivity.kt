@@ -235,7 +235,7 @@ class EventDetailsActivity : AppCompatActivity() {
         const val EXTRA_EVENT_ID = "io.github.teouk.fomo.extra.EVENT_ID"
         private const val COLLAPSED_LINES = 4
 
-        /** Ticketmaster rarely gives an end time, so calendar entries assume 3 hours. */
+        /** Listings rarely give an end time, so calendar entries assume 3 hours. */
         private const val ASSUMED_EVENT_DURATION_HOURS = 3L
 
         /**

@@ -6,9 +6,9 @@ import java.time.LocalTime
 
 /**
  * An event as the app uses it. This is the "domain model": the UI and the database
- * work with this class and never see Ticketmaster's JSON shape.
+ * work with this class and never see Data Thistle's JSON shape.
  *
- * Fields that Ticketmaster often leaves out are nullable, so the compiler forces every
+ * Fields the API often leaves out are nullable, so the compiler forces every
  * screen to decide what to show when they are missing (for example "Price TBC").
  */
 data class Event(

@@ -17,7 +17,7 @@ private const val BOOKING_LINK_TYPE = "booking"
 /**
  * Converts a Data Thistle event into the app's [Event].
  *
- * Data Thistle nests things deeper than Ticketmaster: an event has schedules (one per
+ * Data Thistle nests its data: an event has schedules (one per
  * venue), each schedule has performances (one per date/time), and each performance has
  * tickets and booking links. FOMO shows one card per event, so we pick the next upcoming
  * performance and describe the event by it.

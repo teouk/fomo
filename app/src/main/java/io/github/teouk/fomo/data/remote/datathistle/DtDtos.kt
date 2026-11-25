@@ -7,7 +7,7 @@ import kotlinx.serialization.json.JsonElement
 /*
  * DTOs mirroring Data Thistle's JSON (schemas EventSuccess and PlaceSuccess in the
  * OpenAPI spec at https://api.datathistle.com/openapi/openapi.yaml). The "Dt" prefix
- * keeps them apart from Ticketmaster's DTOs.
+ * marks them as Data Thistle's shapes, so they are never confused with the app's own model.
  *
  * Every field has a default because the API leaves out what it does not know. Fields
  * the spec marks "@todo" or describes inconsistently are read as raw JsonElement and
